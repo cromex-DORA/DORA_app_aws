@@ -1,87 +1,53 @@
 // UploadModal.js
 import React, { useState } from 'react';
-import './UploadModal.css';  // Importer le fichier CSS spécifique à la modale
+import { Modal, Tab, Tabs, Button } from 'react-bootstrap';
 
-const UploadModal = ({ isOpen, onClose, onSubmit }) => {
-    const [shpFile, setShpFile] = useState(null);
-    const [additionalInfo, setAdditionalInfo] = useState({
-        name: '',
-        description: ''
-    });
-    const [imageUrl, setImageUrl] = useState(null);
+const UploadModal = ({ setIsModalOpen }) => {
+    const [key, setKey] = useState('upload'); // Onglet actif
 
-    const handleFileChange = (e) => {
-        setShpFile(e.target.files[0]);
-        setImageUrl(null); // Reset image URL when a new file is selected
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (shpFile) {
-            const formData = new FormData();
-            formData.append('file', shpFile);
-            formData.append('name', additionalInfo.name);
-            formData.append('description', additionalInfo.description);
-
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${process.env.REACT_APP_IP_SERV}/upload`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': token,
-                    },
-                    body: formData
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('File uploaded successfully', data);
-                    setImageUrl(data.imageUrl); // Assure-toi que ton backend renvoie l'URL de l'image
-                } else {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-            } catch (error) {
-                console.error('File upload failed:', error);
-            }
-        }
-    };
-
-    return isOpen ? (
-        <>
-            <div className="modal">
-                <h2>Upload SHP File</h2>
-                <form onSubmit={handleSubmit}>
-                    <div>
-                        <label>
-                            File:
-                            <input type="file" accept=".shp" onChange={handleFileChange} required />
-                        </label>
-                    </div>
-                    <div>
-                        <label>
-                            Name:
-                            <input type="text" value={additionalInfo.name} onChange={(e) => setAdditionalInfo({ ...additionalInfo, name: e.target.value })} required />
-                        </label>
-                    </div>
-                    <div>
-                        <label>
-                            Description:
-                            <textarea value={additionalInfo.description} onChange={(e) => setAdditionalInfo({ ...additionalInfo, description: e.target.value })} required />
-                        </label>
-                    </div>
-                    <button type="submit">Upload</button>
-                    <button type="button" onClick={onClose}>Cancel</button>
-                </form>
-                {imageUrl && (
-                    <div>
-                        <h3>Uploaded SHP Preview:</h3>
-                        <img src={imageUrl} alt="SHP Preview" style={{ width: '100%', height: 'auto' }} />
-                    </div>
-                )}
-            </div>
-            <div className="modal-overlay" onClick={onClose} />
-        </>
-    ) : null;
+    return (
+        <Modal show onHide={() => setIsModalOpen(false)} size="lg">
+            <Modal.Header closeButton>
+            </Modal.Header>
+            <Modal.Body>
+                <Tabs
+                    id="controlled-tab-example"
+                    activeKey={key}
+                    onSelect={(k) => setKey(k)}
+                    className="mb-3"
+                >
+                    <Tab eventKey="upload" title="Upload">
+                        <UploadContent />
+                    </Tab>
+                    <Tab eventKey="preview" title="Preview">
+                        <PreviewContent />
+                    </Tab>
+                    {/* Ajoutez d'autres onglets si nécessaire */}
+                </Tabs>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+                    Close
+                </Button>
+                <Button variant="primary">Save Changes</Button>
+            </Modal.Footer>
+        </Modal>
+    );
 };
+
+const UploadContent = () => (
+    <div>
+        <h4>Upload Content</h4>
+        <input type="file" className="form-control" />
+        <Button className="mt-2" variant="primary">Upload</Button>
+    </div>
+);
+
+const PreviewContent = () => (
+    <div>
+        <h4>Preview Content</h4>
+        <p>Aperçu des fichiers...</p>
+    </div>
+);
 
 export default UploadModal;

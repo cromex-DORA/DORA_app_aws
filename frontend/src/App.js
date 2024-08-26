@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginForm from './components/LoginForm';
 import FolderContent from './components/FolderContent';
 import AdminPage from './components/AdminPage';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 const App = () => {
   const [loggedIn, setLoggedIn] = useState(false);
