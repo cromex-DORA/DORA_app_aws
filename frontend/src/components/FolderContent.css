@@ -1,0 +1,25 @@
+/* FolderContent.css */
+
+.map-section {
+    grid-column: 2 / 3; /* Colonne 2 */
+    grid-row: 1 / 2; /* Rangée 1 */
+    background-color: #ffffff;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    height: 100%; /* Assurez-vous que la hauteur est correcte */
+    overflow: hidden; /* Éviter les débordements */
+    display: flex; /* Utiliser Flexbox pour la mise en page */
+    flex-direction: column; /* Disposer les éléments en colonne */
+}
+
+.map-container {
+    flex: 1; /* La carte prendra tout l'espace disponible */
+    min-height: 200px; /* Hauteur minimale pour la carte */
+    border: 2px solid blue; /* Bordure bleue pour déboguer */
+    position: relative; /* Position relative pour l'alignement */
+}
+
+.filter-container {
+    margin-top: 10px; /* Espacement entre la carte et le filtre */
+}
