@@ -43,7 +43,7 @@ const FolderList = ({
                         onMouseLeave={() => setHighlightedFeatureId(null)}
                         style={{ cursor: 'pointer', color: highlightedFolderId === folder.id ? 'red' : 'blue' }}
                     >
-                        📁 {folder.name} ({folder.NOM_MO})
+                        📁 {folder.name}
                     </li>
                 ))}
                 {files.map((file, index) => (

@@ -10,9 +10,9 @@ import geopandas as gpd
 ###Fichiers config
 import os
 bucket_users_files = os.getenv('S3_BUCKET_USERS_FILES')
-
+folder_prefix = 'MO_gemapi/'
 #folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)
-geojson_data=creation_carte.creation_carto_syndicats("33")
+folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)
 print("coucou")
 #ajout_MO_ou_PPG.ajout_shp_MO_ou_PPG("PPG")
 

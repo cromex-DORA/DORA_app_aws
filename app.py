@@ -122,7 +122,7 @@ def bbox():
 def get_info(id):
     # Vérifiez si l'ID existe dans vos donnée
     info = {
-        "id": "MO_gemapi_10043",
+        "id": "techon, toujours pareil",
         "name": id}
 
     if info:
