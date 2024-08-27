@@ -6,6 +6,7 @@ const FolderList = ({
     currentPath, 
     folderName, 
     highlightedFolderId, 
+    setHighlightedFolderId, 
     handleFolderClick, 
     downloadFile
 }) => {
@@ -15,9 +16,8 @@ const FolderList = ({
         setSearchQuery(e.target.value.toLowerCase());
     };
 
-    // Assurez-vous que `folder.name` est bien une chaîne avant d'appeler `toLowerCase()`
     const filteredFolders = folders.filter(folder =>
-        typeof folder.name === 'string' && folder.name.toLowerCase().includes(searchQuery)
+        folder.name.toLowerCase().includes(searchQuery)
     );
 
     return (
@@ -33,11 +33,17 @@ const FolderList = ({
 
             {/* Liste des dossiers filtrés */}
             <ul>
-                {filteredFolders.map((folder, index) => (
+                {filteredFolders.map((folder) => (
                     <li
-                        key={folder.id || index}  // Assurez-vous que `folder.id` est unique
+                        key={folder.id}
                         onClick={() => handleFolderClick(folder)}
-                        style={{ cursor: 'pointer', color: highlightedFolderId === folder.id ? 'red' : 'blue' }}
+                        onMouseOver={() => setHighlightedFolderId(folder.id)}
+                        onMouseOut={() => setHighlightedFolderId(null)}
+                        style={{
+                            cursor: 'pointer',
+                            color: highlightedFolderId === folder.id ? 'red' : 'blue',
+                            fontWeight: highlightedFolderId === folder.id ? 'bold' : 'normal'
+                        }}
                     >
                         📁 {folder.name}
                     </li>

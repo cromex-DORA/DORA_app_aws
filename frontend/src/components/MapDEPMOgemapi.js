@@ -1,60 +1,92 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import GeoJSONRewind from './GeoJSONRewind'; // Assurez-vous que ce chemin est correct
+import './MapDEPMOgemapi.css';
 
-const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds }) => {
-    const [rewoundGeoJson, setRewoundGeoJson] = useState(null);
+const MapViewUpdater = ({ bounds }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (bounds && bounds.length === 2) {
+            map.fitBounds(bounds);
+        }
+    }, [bounds, map]);
+
+    return null;
+};
+
+const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedFolderId, setHighlightedFolderId }) => {
     const mapRef = useRef();
+    const geoJsonLayerRef = useRef();
 
-    // Fonction pour gérer les clics sur les polygones
+    useEffect(() => {
+        if (geoJsonLayerRef.current && geoJsonData) {
+            geoJsonLayerRef.current.eachLayer(layer => {
+                const featureId = layer.feature.id;
+                if (highlightedFolderId === featureId) {
+                    layer.setStyle({
+                        weight: 8,
+                        color: '#ff0000',
+                        opacity: 0.8
+                    });
+                } else {
+                    layer.setStyle({
+                        weight: 5,
+                        color: '#0000ff',
+                        opacity: 0.65
+                    });
+                }
+            });
+        }
+    }, [highlightedFolderId, geoJsonData]);
+
     const onEachFeature = (feature, layer) => {
         layer.on({
             click: () => {
-                const folderId = feature.id; // ID du polygone
-                setSelectedFolderId(folderId); // Met à jour l'ID du dossier sélectionné
+                setSelectedFolderId(feature.id);
+            },
+            mouseover: () => {
+                setHighlightedFolderId(feature.id);
+                layer.setStyle({
+                    weight: 8,
+                    color: '#ff0000',
+                    opacity: 0.8
+                });
+            },
+            mouseout: () => {
+                if (feature.id !== highlightedFolderId) {
+                    layer.setStyle({
+                        weight: 5,
+                        color: '#0000ff',
+                        opacity: 0.65
+                    });
+                }
+                setHighlightedFolderId(null);
             }
         });
     };
 
-    useEffect(() => {
-        if (geoJsonData) {
-            const rewind = new GeoJSONRewind();
-            const rewoundData = rewind.rewind(JSON.parse(JSON.stringify(geoJsonData))); // Clone et rewind
-            setRewoundGeoJson(rewoundData);
-        }
-    }, [geoJsonData]);
-
-    // Hook to update map view
-    const MapViewUpdater = ({ bounds }) => {
-        const map = useMap();
-        useEffect(() => {
-            if (bounds && bounds.length === 2) {
-                map.fitBounds(bounds);
-            }
-        }, [bounds, map]);
-        return null;
-    };
-
     return (
         <MapContainer
-            center={[60.7681, -73.98196]} // Valeur par défaut, sera mise à jour par fitBounds
+            center={[44, -0.98196]}
             zoom={14}
-            style={{ height: '400px', width: '100%' }} // Ajustez les dimensions si nécessaire
+            className="map-container" // Appliquez la classe CSS ici
+            whenCreated={map => { mapRef.current = map; }}
         >
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-            {rewoundGeoJson && (
+            {geoJsonData && (
                 <GeoJSON
-                    data={rewoundGeoJson}
+                    data={geoJsonData}
                     onEachFeature={onEachFeature}
                     style={{
-                        color: '#ff7800',
+                        color: '#0000ff',
                         weight: 5,
                         opacity: 0.65
                     }}
+                    ref={geoJsonLayerRef}
                 />
             )}
             <MapViewUpdater bounds={bounds} />

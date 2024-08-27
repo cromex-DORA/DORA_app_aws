@@ -1,0 +1,5 @@
+.map-container {
+    height: 600px; /* Ajustez la hauteur selon vos besoins */
+    width: 80%;    /* Ajustez la largeur selon vos besoins */
+    margin: 0 auto; /* Centrer la carte horizontalement */
+}

@@ -12,6 +12,7 @@ const FolderContent = () => {
     const [geoJsonData, setGeoJsonData] = useState(null);
     const [view, setView] = useState('folders'); // 'folders' or 'files'
     const [bounds, setBounds] = useState([]);
+    const [highlightedFolderId, setHighlightedFolderId] = useState(null);
 
     const fetchContent = async () => {
         const token = localStorage.getItem('token');
@@ -97,7 +98,8 @@ const FolderContent = () => {
                     folderName={folderName}
                     handleFolderClick={handleFolderClick}
                     downloadFile={(file) => { /* Télécharger le fichier */ }}
-                    highlightedFolderId={selectedFolderId}
+                    highlightedFolderId={highlightedFolderId}
+                    setHighlightedFolderId={setHighlightedFolderId} // Passer l'ID du dossier en survol
                 />
             </div>
             <div className="map-container">
@@ -105,6 +107,8 @@ const FolderContent = () => {
                     geoJsonData={geoJsonData}
                     setSelectedFolderId={setSelectedFolderId}
                     bounds={bounds}
+                    highlightedFolderId={highlightedFolderId}
+                    setHighlightedFolderId={setHighlightedFolderId}
                 />
             </div>
             <div className="info-panel-section">

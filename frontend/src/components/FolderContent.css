@@ -2,8 +2,8 @@
 
 .container {
     display: grid;
-    grid-template-columns: 1fr 2fr; /* Colonne gauche flexible (1fr) et colonne droite plus large (2fr) */
-    grid-template-rows: 1fr 1fr; /* Rangées flexibles */
+    grid-template-columns: 1fr 1fr; /* Colonne gauche flexible (1fr) et colonne droite plus large (2fr) */
+    grid-template-rows: 1fr 400px; /* Rangées flexibles */
     gap: 10px; /* Espacement entre les éléments */
     height: 100vh; /* Utilise toute la hauteur de l'écran */
     box-sizing: border-box;
