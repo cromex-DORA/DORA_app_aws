@@ -67,30 +67,32 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedF
     };
 
     return (
-        <MapContainer
-            center={[44, -0.98196]}
-            zoom={14}
-            className="map-container" // Appliquez la classe CSS ici
-            whenCreated={map => { mapRef.current = map; }}
-        >
-            <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            {geoJsonData && (
-                <GeoJSON
-                    data={geoJsonData}
-                    onEachFeature={onEachFeature}
-                    style={{
-                        color: '#0000ff',
-                        weight: 5,
-                        opacity: 0.65
-                    }}
-                    ref={geoJsonLayerRef}
+        <div className="map-container">
+            <MapContainer
+                center={[44, -0.98196]}
+                zoom={14}
+                className="map" // Appliquez la classe CSS ici
+                whenCreated={map => { mapRef.current = map; }}
+            >
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
-            )}
-            <MapViewUpdater bounds={bounds} />
-        </MapContainer>
+                {geoJsonData && (
+                    <GeoJSON
+                        data={geoJsonData}
+                        onEachFeature={onEachFeature}
+                        style={{
+                            color: '#0000ff',
+                            weight: 5,
+                            opacity: 0.65
+                        }}
+                        ref={geoJsonLayerRef}
+                    />
+                )}
+                <MapViewUpdater bounds={bounds} />
+            </MapContainer>
+        </div>
     );
 };
 

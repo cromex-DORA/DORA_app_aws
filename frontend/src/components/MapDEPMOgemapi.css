@@ -1,5 +1,12 @@
+/* Assurez-vous que la carte occupe tout l'espace du conteneur parent */
 .map-container {
-    height: 600px; /* Ajustez la hauteur selon vos besoins */
-    width: 80%;    /* Ajustez la largeur selon vos besoins */
-    margin: 0 auto; /* Centrer la carte horizontalement */
+    position: relative; /* Position relative pour les éléments positionnés à l'intérieur */
+    height: 100%; /* Hauteur de la carte égale à celle du conteneur */
+    width: 100%;  /* Largeur de la carte égale à celle du conteneur */
+}
+
+/* Ajustez la taille de la carte ici si nécessaire */
+.map {
+    height: 100%; /* Hauteur de la carte égale à celle du conteneur */
+    width: 100%;  /* Largeur de la carte égale à celle du conteneur */
 }

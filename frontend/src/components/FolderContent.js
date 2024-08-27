@@ -13,6 +13,7 @@ const FolderContent = () => {
     const [view, setView] = useState('folders'); // 'folders' or 'files'
     const [bounds, setBounds] = useState([]);
     const [highlightedFolderId, setHighlightedFolderId] = useState(null);
+    const [filter, setFilter] = useState('All'); // State for filtering the map data
 
     const fetchContent = async () => {
         const token = localStorage.getItem('token');
@@ -54,6 +55,15 @@ const FolderContent = () => {
         fetchContent();
     }, []);
 
+
+    const filteredGeoJsonData = {
+        ...geoJsonData,
+        features: geoJsonData?.features.filter(feature => {
+            if (filter === 'All') return true;
+            return feature.properties.NOM_MO.includes(filter);
+        })
+    };
+
     useEffect(() => {
         if (selectedFolderId) {
             const selectedFolder = folders.find(folder => folder.id === selectedFolderId);
@@ -83,8 +93,8 @@ const FolderContent = () => {
     };
 
     return (
-        <div className="container">
-            <div className="folder-list-container">
+            <div className="app-container">
+            <div className="folder-content-container">
                 {/* Afficher le bouton "Back" seulement si nous ne sommes pas dans la vue des dossiers */}
                 {view === 'files' && (
                     <button onClick={handleBackClick} style={{ marginBottom: '10px' }}>
@@ -104,7 +114,7 @@ const FolderContent = () => {
             </div>
             <div className="map-container">
                 <MapDEPMOgemapi
-                    geoJsonData={geoJsonData}
+                    geoJsonData={filteredGeoJsonData}
                     setSelectedFolderId={setSelectedFolderId}
                     bounds={bounds}
                     highlightedFolderId={highlightedFolderId}
