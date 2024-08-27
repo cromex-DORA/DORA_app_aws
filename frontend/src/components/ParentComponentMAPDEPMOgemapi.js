@@ -5,7 +5,7 @@ import FilterComponent from './FilterComponent';
 import UploadModal from './UploadModal';
 import { Button } from 'react-bootstrap'; // Assurez-vous d'importer Button de react-bootstrap
 
-const ParentComponent = ({ highlightedFeatureId, onFeatureHover, onFeatureClick, onFeatureMouseOver }) => {
+const ParentComponent = ({ highlightedFeatureId, onFeatureHover, onFeatureClick, onFeatureMouseOver, mapCenter }) => {
     const [selectedOption, setSelectedOption] = useState("Syndicat");
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -31,6 +31,7 @@ const ParentComponent = ({ highlightedFeatureId, onFeatureHover, onFeatureClick,
                     onFeatureHover={onFeatureHover}
                     onFeatureClick={onFeatureClick}
                     onFeatureMouseOver={onFeatureMouseOver}
+                    mapCenter={mapCenter}  // Passez les coordonnées de la carte ici
                 />
             </div>
         </div>

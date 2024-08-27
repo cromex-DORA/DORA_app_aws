@@ -7,19 +7,17 @@ const FolderList = ({
     folderName, 
     highlightedFolderId, 
     handleFolderClick, 
-    setHighlightedFeatureId, 
-    downloadFile,
-    setIsModalOpen
+    downloadFile
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedOption, setSelectedOption] = useState('');
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value.toLowerCase());
     };
 
+    // Assurez-vous que `folder.name` est bien une chaîne avant d'appeler `toLowerCase()`
     const filteredFolders = folders.filter(folder =>
-        folder.name.toLowerCase().includes(searchQuery)
+        typeof folder.name === 'string' && folder.name.toLowerCase().includes(searchQuery)
     );
 
     return (
@@ -37,10 +35,8 @@ const FolderList = ({
             <ul>
                 {filteredFolders.map((folder, index) => (
                     <li
-                        key={index}
+                        key={folder.id || index}  // Assurez-vous que `folder.id` est unique
                         onClick={() => handleFolderClick(folder)}
-                        onMouseEnter={() => setHighlightedFeatureId(folder.id)}
-                        onMouseLeave={() => setHighlightedFeatureId(null)}
                         style={{ cursor: 'pointer', color: highlightedFolderId === folder.id ? 'red' : 'blue' }}
                     >
                         📁 {folder.name}
@@ -57,9 +53,6 @@ const FolderList = ({
                     </li>
                 ))}
             </ul>
-
-            {/* Bouton pour ouvrir la modale d'upload */}
-            <button onClick={() => setIsModalOpen(true)}>Upload SHP</button>
         </div>
     );
 };

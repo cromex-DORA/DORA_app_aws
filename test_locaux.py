@@ -11,8 +11,15 @@ import geopandas as gpd
 import os
 bucket_users_files = os.getenv('S3_BUCKET_USERS_FILES')
 folder_prefix = 'MO_gemapi/'
-#folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)
 folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)
+geojson_data=creation_carte.creation_carto_syndicats("33")
+dict_folders = {item['id']:item for item in folders}
+dict_combined = {}
+
+for num,feature in enumerate(geojson_data['features']):
+    if feature['id'] in dict_folders:
+       geojson_data['features'][num]['properties'] = dict_folders[feature['id']] | feature['properties']
+    
 print("coucou")
 #ajout_MO_ou_PPG.ajout_shp_MO_ou_PPG("PPG")
 

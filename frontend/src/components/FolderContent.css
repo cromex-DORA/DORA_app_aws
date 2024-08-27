@@ -1,25 +1,68 @@
 /* FolderContent.css */
 
-.map-section {
+.container {
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* Colonne gauche flexible (1fr) et colonne droite plus large (2fr) */
+    grid-template-rows: 1fr 1fr; /* Rangées flexibles */
+    gap: 10px; /* Espacement entre les éléments */
+    height: 100vh; /* Utilise toute la hauteur de l'écran */
+    box-sizing: border-box;
+}
+
+.polygon-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #000;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+    padding: 2px;
+}
+
+.folder-list-container {
+    grid-column: 1 / 2; /* Colonne 1 */
+    grid-row: 1 / 2; /* Rangée 1 */
+    background-color: #f4f4f4;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    overflow: auto;
+    max-width: 100%; /* S'assurer que la largeur ne dépasse pas la grille */
+    max-height: 100%; /* S'assurer que la hauteur ne dépasse pas la grille */
+}
+
+.info-panel-section {
+    grid-column: 1 / 2; /* Colonne 1 */
+    grid-row: 2 / 3; /* Rangée 2 */
+    background-color: #f9f9f9;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    overflow: auto;
+    max-width: 100%; /* S'assurer que la largeur ne dépasse pas la grille */
+    max-height: 100%; /* S'assurer que la hauteur ne dépasse pas la grille */
+}
+
+.map-container {
     grid-column: 2 / 3; /* Colonne 2 */
     grid-row: 1 / 2; /* Rangée 1 */
     background-color: #ffffff;
     padding: 10px;
     box-sizing: border-box;
     border: 2px solid #ccc;
-    height: 100%; /* Assurez-vous que la hauteur est correcte */
+    max-width: 100%; /* S'assurer que la largeur ne dépasse pas la grille */
+    max-height: 100%; /* S'assurer que la hauteur ne dépasse pas la grille */
+    height: 100%; /* Utilise toute la hauteur disponible dans la grille */
     overflow: hidden; /* Éviter les débordements */
-    display: flex; /* Utiliser Flexbox pour la mise en page */
-    flex-direction: column; /* Disposer les éléments en colonne */
 }
 
-.map-container {
-    flex: 1; /* La carte prendra tout l'espace disponible */
-    min-height: 200px; /* Hauteur minimale pour la carte */
-    border: 2px solid blue; /* Bordure bleue pour déboguer */
-    position: relative; /* Position relative pour l'alignement */
-}
-
-.filter-container {
-    margin-top: 10px; /* Espacement entre la carte et le filtre */
+.other-section {
+    grid-column: 2 / 3; /* Colonne 2 */
+    grid-row: 2 / 3; /* Rangée 2 */
+    background-color: #f9f9f9;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    overflow: auto;
+    max-width: 100%; /* S'assurer que la largeur ne dépasse pas la grille */
+    max-height: 100%; /* S'assurer que la hauteur ne dépasse pas la grille */
 }

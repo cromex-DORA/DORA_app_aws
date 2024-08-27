@@ -44,7 +44,7 @@ def login():
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-@app.route('/folder', methods=['GET'])
+'''@app.route('/folder', methods=['GET'])
 def folder():
     token = request.headers.get('Authorization')
     if not token:
@@ -59,16 +59,12 @@ def folder():
 
     user_folder = gestion_db_users.dossier_principal_user(decoded_token)
     dict_sous_dossiers = gestion_db_users.dossiers_secondaires_user(decoded_token)
+
     print("allo", file=sys.stderr)
     print(dict_sous_dossiers, file=sys.stderr)
     #vrai_nom_dossier = gestion_db_users.trouver_NOM_physique_fichier(dict_sous_dossiers)
-    response = {
-    "files": [],
-    "folders": dict_sous_dossiers,
-    "current_path": "MO_gemapi/",
-    "image_url": "/images/example.png"
-    }   
-    return jsonify(response), 200
+    response = dict_sous_dossiers
+    return jsonify(response), 200'''
 
 
 '''@app.route('/admin/update-files', methods=['POST'])
@@ -83,7 +79,7 @@ def creation_dossiers_MO_gemapi():
     gestion_admin.actualisation_dossier_MO()
     return jsonify({'message': 'Les dossiers MO gemapi sont à jour'})'''
 
-@app.route('/carte_MIA_MO_syndicat', methods=['GET'])
+'''@app.route('/carte_MIA_MO_syndicat', methods=['GET'])
 def geodata():
     token = request.headers.get('Authorization')
     if not token:
@@ -99,7 +95,38 @@ def geodata():
     CODE_DEP = decoded_token['CODE_DEP']
     print(CODE_DEP, file=sys.stderr)
     geojson_data=creation_carte.creation_carto_syndicats(CODE_DEP)
-    return jsonify(geojson_data)
+    return jsonify(geojson_data)'''
+
+@app.route('/geojson_complet_folders', methods=['GET'])
+def geojson_complet_folders():
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 403
+
+    user_folder = gestion_db_users.dossier_principal_user(decoded_token)
+    dict_sous_dossiers = gestion_db_users.dossiers_secondaires_user(decoded_token)
+
+    CODE_DEP = decoded_token['CODE_DEP']
+    print(CODE_DEP, file=sys.stderr)
+    geojson_data=creation_carte.creation_carto_syndicats(CODE_DEP)
+
+    dict_folders = {item['id']:item for item in dict_sous_dossiers}
+    dict_combined = {}
+
+    for num,feature in enumerate(geojson_data['features']):
+        if feature['id'] in dict_folders:
+            geojson_data['features'][num]['properties'] = dict_folders[feature['id']] | feature['properties']
+
+    #vrai_nom_dossier = gestion_db_users.trouver_NOM_physique_fichier(dict_sous_dossiers)
+    response = geojson_data
+    return jsonify(response), 200
 
 @app.route('/bb_box', methods=['GET'])
 def bbox():

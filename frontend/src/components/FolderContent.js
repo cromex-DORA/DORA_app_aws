@@ -1,217 +1,118 @@
 import React, { useState, useEffect } from 'react';
-import ParentComponent from './ParentComponentMAPDEPMOgemapi';
-import InfoPanel from './InfoPanel';
-import UploadModal from './UploadModal';
+import MapDEPMOgemapi from './MapDEPMOgemapi';
 import FolderList from './FolderList';
-import FilterComponent from './FilterComponent';
 import './FolderContent.css';
 
 const FolderContent = () => {
-    const [files, setFiles] = useState([]);
     const [folders, setFolders] = useState([]);
+    const [files, setFiles] = useState([]);
     const [currentPath, setCurrentPath] = useState('');
     const [folderName, setFolderName] = useState('');
-    const [showFileList, setShowFileList] = useState(false);
-    const [infoPanel, setInfoPanel] = useState(null);
-    const [info, setInfo] = useState(null); // Pour stocker les informations à afficher
-    const [highlightedFeatureId, setHighlightedFeatureId] = useState(null);
-    const [highlightedFolderId, setHighlightedFolderId] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedOption, setSelectedOption] = useState('');
-    
+    const [selectedFolderId, setSelectedFolderId] = useState(null);
+    const [geoJsonData, setGeoJsonData] = useState(null);
+    const [view, setView] = useState('folders'); // 'folders' or 'files'
+    const [bounds, setBounds] = useState([]);
 
+    const fetchContent = async () => {
+        const token = localStorage.getItem('token');
+        try {
+            // Fetch GeoJSON Data
+            const geoResponse = await fetch(`${process.env.REACT_APP_IP_SERV}/geojson_complet_folders`, {
+                headers: { 'Authorization': token }
+            });
+            if (!geoResponse.ok) throw new Error(`HTTP error! Status: ${geoResponse.status}`);
+            const geoJsonData = await geoResponse.json();
+            setGeoJsonData(geoJsonData);
 
-const fetchContent = async (path = '') => {
-    const token = localStorage.getItem('token');
-    try {
-        const response = await fetch(`${process.env.REACT_APP_IP_SERV}/folder`, {
-            headers: {
-                'Authorization': token,
-            }
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            // Extract folders from geoJsonData
+            const folderData = geoJsonData.features.map(feature => ({
+                id: feature.id,
+                name: feature.properties.NOM_MO,
+                files: feature.properties.files || []  // Assume files are in properties
+            }));
+            
+            setFolders(folderData);
+
+            // Fetch Bounds Data
+            const bboxResponse = await fetch(`${process.env.REACT_APP_IP_SERV}/bb_box`, {
+                headers: { 'Authorization': token }
+            });
+            if (!bboxResponse.ok) throw new Error(`HTTP error! Status: ${bboxResponse.status}`);
+            const bboxData = await bboxResponse.json();
+            setBounds([
+                [bboxData.miny, bboxData.minx],
+                [bboxData.maxy, bboxData.maxx]
+            ]);
+
+        } catch (error) {
+            console.error('Fetching content failed:', error);
         }
-        const data = await response.json();
-        console.log('Fetched Data:', data);  // Ajouter cette ligne pour vérifier les données reçues
-
-        setFiles(data.files || []);
-        setFolders(data.folders || []);
-        setCurrentPath(data.current_path || '');
-
-        const pathParts = data.current_path.split('/');
-        if (pathParts.length === 1 && pathParts[0] !== '') {
-            setFolderName(pathParts[0]);
-        } else {
-            setFolderName('');
-        }
-    } catch (error) {
-        console.error('Fetching content failed:', error);
-    }
-};
-
+    };
 
     useEffect(() => {
         fetchContent();
     }, []);
 
-    const handleBackClick = () => {
-        const pathParts = currentPath.split('/').filter(part => part);
-        const parentPath = pathParts.slice(0, -1).join('/') + '/';
-        fetchContent(parentPath || ''); // Passer un chemin vide pour la racine
-    };
-
-    const handleFeatureHover = (featureId) => {
-        setHighlightedFeatureId(featureId);
-    };
-
-    const fetchInfo = async (id) => {
-        const token = localStorage.getItem('token');
-        try {
-            const response = await fetch(`${process.env.REACT_APP_IP_SERV}/info/${id}`, {
-                headers: {
-                    'Authorization': token,
-                }
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+    useEffect(() => {
+        if (selectedFolderId) {
+            const selectedFolder = folders.find(folder => folder.id === selectedFolderId);
+            if (selectedFolder) {
+                setFiles(selectedFolder.files || []);
+                setCurrentPath(selectedFolder.path || '');
+                setFolderName(selectedFolder.name || '');
+                setView('files');
             }
-            const data = await response.json();
-           
-            setInfoPanel(data);
-        } catch (error) {
-            console.error('Error fetching info:', error);
-            setInfoPanel(null);
         }
-    };
-
-const handleEntityClick = async (id) => {
-    console.log('Entity Clicked ID:', id);
-
-    // Cherche le dossier correspondant dans la liste des folders
-    const folder = folders.find(folder => folder.id === id);
-
-    // Si le dossier est trouvé, on met à jour les états avec ses informations
-    if (folder) {
-        console.log('Folder found:', folder);
-        setCurrentPath(folder.path || '');  // Vérification que le chemin existe
-        setFolderName(folder.name || '');  // Vérification que le nom existe
-        setFiles(folder.files || []);  // Vérification que la liste de fichiers existe
-        setFolders(folder.folders || []);  // Vérification que la liste de sous-dossiers existe
-        setShowFileList(true);
-        setHighlightedFeatureId(null); 
-        await fetchInfo(folder.id); // Récupère et met à jour le panneau d'information
-        return;
-    }
-
-    // Si aucun dossier n'est trouvé, on vérifie si c'est une entité sélectionnée dans les features
-    const feature = highlightedFeatureId === id ? { id: id } : null; // Utilisation de l'ID de la feature
-    if (feature) {
-        console.log('Feature found:', feature);
-        // Comme le dossier est undefined, on évite de l'utiliser ici
-        setCurrentPath(currentPath || '');  // Utilise le chemin actuel
-        setFolderName('');  // Réinitialise le nom du dossier (aucun nom de dossier dans ce cas)
-        setFiles([]);  // Réinitialise la liste des fichiers
-        setFolders([]);  // Réinitialise la liste des dossiers
-        setShowFileList(false);
-        await fetchInfo(feature.id); // Récupère et met à jour le panneau d'information
-    } else {
-        console.error('No folder or feature found for the clicked ID:', id);
-    }
-};
-
-
+    }, [selectedFolderId, folders]);
 
     const handleFolderClick = (folder) => {
-        if (folder) {
-            handleEntityClick(folder.id);
-        } else {
-            handleBackClick();
-        }
+        setSelectedFolderId(folder.id);
+        setFiles(folder.files || []);
+        setCurrentPath(folder.path || '');
+        setFolderName(folder.name || '');
+        setView('files');
     };
 
-    const handleFeatureClick = (featureId) => {
-        if (featureId) {
-            handleEntityClick(featureId);
-        } else {
-            handleBackClick();
-        }
+    const handleBackClick = () => {
+        setSelectedFolderId(null);
+        setFiles([]);
+        setCurrentPath('');
+        setFolderName('');
+        setView('folders');
     };
 
-
-    const handleFeatureMouseOver = (featureId) => {
-        setHighlightedFolderId(featureId);
-    };
-
-    useEffect(() => {
-        setHighlightedFolderId(highlightedFeatureId);
-    }, [highlightedFeatureId]);
-
-    const downloadFile = (filePath) => {
-        const token = localStorage.getItem('token');
-        fetch(`${process.env.REACT_APP_IP_SERV}/download?file=${filePath}`, {
-            headers: {
-                'Authorization': token,
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.blob();
-            } else {
-                throw new Error('Download failed');
-            }
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filePath.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        })
-        .catch(error => console.error('Error downloading file:', error));
-    };
-
-    useEffect(() => {
-    }, [infoPanel]);
-
-    const showBackButton = currentPath && currentPath !== '/';
-
-   return (
-        <div className="folder-content-container">
-
-            <div className="folder-list-section">
-                <h2>DORA v0.1</h2>
-                
-                <p>{folderName || 'Liste des MO'}</p>
-                <FolderList 
-                    folders={folders} 
-                    files={files} 
+    return (
+        <div className="container">
+            <div className="folder-list-container">
+                {/* Afficher le bouton "Back" seulement si nous ne sommes pas dans la vue des dossiers */}
+                {view === 'files' && (
+                    <button onClick={handleBackClick} style={{ marginBottom: '10px' }}>
+                        Back
+                    </button>
+                )}
+                <FolderList
+                    folders={view === 'folders' ? folders : []}
+                    files={view === 'files' ? files : []}
                     currentPath={currentPath}
                     folderName={folderName}
-                    highlightedFolderId={highlightedFolderId}
                     handleFolderClick={handleFolderClick}
-                    setHighlightedFeatureId={setHighlightedFeatureId}
-                    downloadFile={downloadFile}
-                    setIsModalOpen={setIsModalOpen} // Pass the state setter to FolderList
+                    downloadFile={(file) => { /* Télécharger le fichier */ }}
+                    highlightedFolderId={selectedFolderId}
                 />
-                {showBackButton && <button onClick={handleBackClick}>Back</button>}
             </div>
-            
-            <div className="map-section">
-                {/* Ajoutez le composant de carte ici */}
-                <ParentComponent 
-                    highlightedFeatureId={highlightedFeatureId} 
-                    onFeatureHover={handleFeatureHover} 
-                    onFeatureClick={handleFeatureClick}
-                    onFeatureMouseOver={handleFeatureMouseOver}
-                    selectedOption={selectedOption} // Passez le filtre à la carte
+            <div className="map-container">
+                <MapDEPMOgemapi
+                    geoJsonData={geoJsonData}
+                    setSelectedFolderId={setSelectedFolderId}
+                    bounds={bounds}
                 />
-                {showFileList && infoPanel && <InfoPanel info={infoPanel} />}
             </div>
-            {/* Affichage de la modale si elle est ouverte */}
-            {isModalOpen && <UploadModal setIsModalOpen={setIsModalOpen} />}
+            <div className="info-panel-section">
+                {/* Autres sections ou informations */}
+            </div>
+            <div className="other-section">
+                {/* Autres sections ou informations */}
+            </div>
         </div>
     );
 };

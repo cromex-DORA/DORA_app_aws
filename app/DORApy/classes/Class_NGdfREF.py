@@ -60,6 +60,7 @@ class NGdfREF:
         gdf = self.gdf.to_crs("EPSG:4326")  # Assurez-vous que les coordonnées sont en WGS84
         gdf['geometry_'+self.echelle_REF_shp] = gdf['geometry_'+self.echelle_REF_shp].apply(traitement_gdf_pour_geojson)
         gdf = gdf.rename({"CODE_"+self.echelle_REF_shp:"id"},axis=1)
+        gdf = gdf.set_index('id')
         geojson_data = gdf.to_json()
         geojson_data = json.loads(geojson_data)
         return geojson_data

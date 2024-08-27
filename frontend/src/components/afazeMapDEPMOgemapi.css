@@ -38,7 +38,7 @@
     overflow: auto;
 }
 
-.map-section {
+.map-container {
     grid-column: 2 / 3; /* Colonne 2 */
     grid-row: 1 / 2; /* Rangée 1 */
     display: flex;
