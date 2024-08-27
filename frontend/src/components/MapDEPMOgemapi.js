@@ -1,7 +1,21 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapDEPMOgemapi.css'; // Assurez-vous que ce chemin est correct
+
+// Composant pour configurer le zoomSnap
+const MapConfig = () => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (map) {
+            map.options.zoomSnap = 0.5; // Configure le zoomSnap
+            map.setZoom(map.getZoom()); // Applique le changement de zoomSnap
+        }
+    }, [map]);
+
+    return null;
+};
 
 // Composant pour ajuster les bornes de la carte
 const FitBounds = ({ bounds }) => {
@@ -22,8 +36,32 @@ const MapEvents = ({ setZoomLevel }) => {
         zoomend: (e) => {
             const zoom = e.target.getZoom();
             setZoomLevel(zoom);
+            console.log("niveau zoom:", zoom);
         }
     });
+
+    return null;
+};
+
+// Composant pour gérer le zoom sur le polygone cliqué
+const ZoomOnFeatureClick = ({ geoJsonData }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (geoJsonData) {
+            // Fonction pour ajuster le zoom sur le polygone
+            const zoomToFeature = (e) => {
+                const layer = e.target;
+                const bounds = layer.getBounds();
+                if (bounds) {
+                    map.fitBounds(bounds, { padding: [20, 20] }); // Ajuste le zoom pour inclure le polygone avec du padding
+                }
+            };
+
+            // Associer les événements de clic aux couches GeoJSON
+
+        }
+    }, [map, geoJsonData]);
 
     return null;
 };
@@ -34,11 +72,9 @@ const MapComponent = ({ selectedOption, highlightedFeatureId, onFeatureHover, on
     const [zoomLevel, setZoomLevel] = useState(null);
     const geoJsonLayerRef = useRef();
 
-
     useEffect(() => {
         const token = localStorage.getItem('token');
-        console.log("Selected Option:", selectedOption);
-        
+
         fetch('http://localhost:5000/carte_MIA_MO_syndicat', {
             headers: { 'Authorization': token }
         })
@@ -86,31 +122,34 @@ const MapComponent = ({ selectedOption, highlightedFeatureId, onFeatureHover, on
         }
     }, [highlightedFeatureId, geoJsonData]);
 
-    useEffect(() => {
-        console.log("Selected Option:", selectedOption);
-    }, [selectedOption]);    
+    const updateLabels = useCallback(() => {
+        if (geoJsonLayerRef.current) {
+            geoJsonLayerRef.current.eachLayer(layer => {
+                const featureId = layer.feature?.properties?.id;
+                const featureName = layer.feature?.properties?.ALIAS;
 
-    const onEachFeature = (feature, layer) => {
-        const featureId = feature.properties.id;
-        const featureName = feature.properties.NOM_MO;
+                if (zoomLevel >= 9) {
+                    layer.bindTooltip(featureName, { permanent: true, direction: "center", className: "polygon-label" });
+                } else {
+                    layer.unbindTooltip();
+                }
 
-        if (zoomLevel >= 10) { // Afficher le label si le niveau de zoom est 10 ou plus
-            layer.bindTooltip(featureName, { permanent: true, direction: "center", className: "polygon-label" });
-        } else {
-            layer.unbindTooltip(); // Supprimer le label si le niveau de zoom est inférieur à 10
+                layer.on({
+                    mouseover: () => onFeatureHover(featureId),
+                    mouseout: () => onFeatureHover(null),
+                    click: () => onFeatureClick(featureId)
+                });
+            });
         }
+    }, [zoomLevel, onFeatureHover, onFeatureClick]);
 
-        layer.on({
-            mouseover: () => onFeatureHover(featureId),
-            mouseout: () => onFeatureHover(null),
-            click: () => onFeatureClick(featureId)
-        });
-    };
+    useEffect(() => {
+        updateLabels();
+    }, [zoomLevel, updateLabels]);
 
     const filteredGeoJsonData = geoJsonData ? {
         ...geoJsonData,
         features: geoJsonData.features.filter(feature => {
-            // Utiliser la valeur du filtre sélectionné
             const typeMO = feature.properties['TYPE_MO'];
             return selectedOption ? typeMO === selectedOption : true;
         })
@@ -118,17 +157,21 @@ const MapComponent = ({ selectedOption, highlightedFeatureId, onFeatureHover, on
 
     return (
         <MapContainer
-            className="map-container" // Appliquer le style CSS ici
+            className="map-container"
+            style={{ height: '100%', width: '100%' }}
         >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {filteredGeoJsonData && (
-                <GeoJSON data={filteredGeoJsonData}
-                 ref={geoJsonLayerRef}
-                  onEachFeature={onEachFeature}
-                  key={`${selectedOption}-${filteredGeoJsonData.features.length}`} />
+                <GeoJSON 
+                    data={filteredGeoJsonData}
+                    ref={geoJsonLayerRef}
+                    key={`${selectedOption}-${filteredGeoJsonData.features.length}`} 
+                />
             )}
             {bounds && <FitBounds bounds={bounds} />}
             <MapEvents setZoomLevel={setZoomLevel} />
+            <MapConfig />
+            <ZoomOnFeatureClick geoJsonData={filteredGeoJsonData} />
         </MapContainer>
     );
 };

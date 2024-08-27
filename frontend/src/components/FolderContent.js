@@ -77,7 +77,7 @@ const fetchContent = async (path = '') => {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const data = await response.json();
-            console.log('Fetched Info:', data);
+           
             setInfoPanel(data);
         } catch (error) {
             console.error('Error fetching info:', error);
@@ -131,8 +131,13 @@ const handleEntityClick = async (id) => {
     };
 
     const handleFeatureClick = (featureId) => {
-        handleEntityClick(featureId);
+        if (featureId) {
+            handleEntityClick(featureId);
+        } else {
+            handleBackClick();
+        }
     };
+
 
     const handleFeatureMouseOver = (featureId) => {
         setHighlightedFolderId(featureId);
@@ -169,7 +174,6 @@ const handleEntityClick = async (id) => {
     };
 
     useEffect(() => {
-        console.log('Info Panel:', infoPanel);
     }, [infoPanel]);
 
     const showBackButton = currentPath && currentPath !== '/';
