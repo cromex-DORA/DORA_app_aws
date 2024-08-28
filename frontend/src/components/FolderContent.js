@@ -13,7 +13,7 @@ const FolderContent = () => {
     const [view, setView] = useState('folders'); // 'folders' or 'files'
     const [bounds, setBounds] = useState([]);
     const [highlightedFolderId, setHighlightedFolderId] = useState(null);
-    const [filter, setFilter] = useState('All'); // State for filtering the map data
+    const [filter, setFilter] = useState('Syndicat'); // State for filtering the map data
 
     const fetchContent = async () => {
         const token = localStorage.getItem('token');
@@ -55,14 +55,16 @@ const FolderContent = () => {
         fetchContent();
     }, []);
 
+    const selectedOption = "Syndicat"
 
-    const filteredGeoJsonData = {
+    const filteredGeoJsonData = geoJsonData ? {
         ...geoJsonData,
-        features: geoJsonData?.features.filter(feature => {
-            if (filter === 'All') return true;
-            return feature.properties.NOM_MO.includes(filter);
+        features: geoJsonData.features.filter(feature => {
+            // Utiliser la valeur du filtre sélectionné
+            const typeMO = feature.properties['TYPE_MO'];
+            return selectedOption ? typeMO === selectedOption : true;
         })
-    };
+    } : null;
 
     useEffect(() => {
         if (selectedFolderId) {
