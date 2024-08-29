@@ -94,7 +94,7 @@ def ajout_onglet_info_PPG(excel_modif,nom_custom,dict_relation_shp_liste,dict_di
         if nom_custom in dict_relation_shp_liste["dict_liste_PPG_par_MO"]:
             df_info_PPG_custom = dict_dict_info_REF["df_info_PPG"].loc[dict_dict_info_REF["df_info_PPG"]["CODE_PPG"].isin(dict_relation_shp_liste["dict_liste_PPG_par_MO"][nom_custom])]
             onglet_info_PPG_vierge = config_DORA.recuperation_df_info_PPG_vierge_DORA()
-            dict_renommage = {'SP_gemapi':list(onglet_info_PPG_vierge)[0],"CODE_SIRET":"code SIRET","NOM_PPG":"Nom_PPG","CODE_PPG":'CODE_PPG',"debut_PPG":"Année Début_PPG","fin_PPG":"Année_Fin_PPG","debut_DIG":"Année Début_DIG","fin_DIG":"Année_Fin_DIG"}
+            dict_renommage = {'NOM_MO_gemapi':list(onglet_info_PPG_vierge)[0],"CODE_SIRET":"code SIRET","NOM_PPG":"Nom_PPG","CODE_PPG":'CODE_PPG',"debut_PPG":"Année Début_PPG","fin_PPG":"Année_Fin_PPG","debut_DIG":"Année Début_DIG","fin_DIG":"Année_Fin_DIG"}
             df_info_PPG_custom = df_info_PPG_custom.rename(dict_renommage,axis=1)
             df_info_PPG_custom = df_info_PPG_custom[list(dict_renommage.values())]
             for colonne_onglet_vierge in list(onglet_info_PPG_vierge):

@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import FiltretypeMO from './FiltretypeMO';
 import 'leaflet/dist/leaflet.css';
 import './MapDEPMOgemapi.css';
 
@@ -16,11 +17,29 @@ const MapViewUpdater = ({ bounds }) => {
 };
 
 const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedFolderId, setHighlightedFolderId }) => {
+    const [filter, setFilter] = useState('Syndicat');
+    const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
     const mapRef = useRef();
     const geoJsonLayerRef = useRef();
 
+
+    // Effect to filter GeoJSON data when geoJsonData or filter changes
     useEffect(() => {
-        if (geoJsonLayerRef.current && geoJsonData) {
+        if (geoJsonData) {
+            const updatedFilteredData = {
+            ...geoJsonData,
+                    features: geoJsonData.features.filter(feature => {
+                        // Utiliser la valeur du filtre sélectionné
+                        const typeMO = feature.properties['TYPE_MO'];
+                        return filter ? typeMO === filter : true;
+                    })
+            };
+            setFilteredGeoJsonData(updatedFilteredData);
+        }
+    }, [filter,geoJsonData]);
+
+    useEffect(() => {
+        if (geoJsonLayerRef.current && filteredGeoJsonData) {
             geoJsonLayerRef.current.eachLayer(layer => {
                 const featureId = layer.feature.id;
                 if (highlightedFolderId === featureId) {
@@ -38,7 +57,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedF
                 }
             });
         }
-    }, [highlightedFolderId, geoJsonData]);
+    }, [highlightedFolderId, filteredGeoJsonData]);
 
     const onEachFeature = (feature, layer) => {
         layer.on({
@@ -68,19 +87,21 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedF
 
     return (
         <div className="map-container">
+            <FiltretypeMO selectedOption={filter} setSelectedOption={setFilter} />
             <MapContainer
                 center={[44, -0.98196]}
                 zoom={14}
-                className="map" // Appliquez la classe CSS ici
+                className="map"
                 whenCreated={map => { mapRef.current = map; }}
             >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
-                {geoJsonData && (
+                {filteredGeoJsonData && (
                     <GeoJSON
-                        data={geoJsonData}
+                        key={JSON.stringify(filteredGeoJsonData)}
+                        data={filteredGeoJsonData}
                         onEachFeature={onEachFeature}
                         style={{
                             color: '#0000ff',

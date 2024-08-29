@@ -1,17 +1,18 @@
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, send_from_directory, jsonify, request, Response
 import os
 from flask_cors import CORS
 from app.DORApy import creation_carte
 from app.DORApy.security import gestion_db_users,gestion_file_upload
-from app.DORApy import gestion_admin
+from app.DORApy.classes.modules import connect_path
+from app.DORApy import gestion_admin,creation_tableau_vierge_DORA
 #from app.DORApy.decorators.token_admin import check_token_admin
 import jwt
 import datetime
 import sys
-import json
+from app.DORApy.classes.modules import connect_path,config_DORA
 
 app = Flask(__name__, static_folder='frontend/build')
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Remplacez '*' par les domaines spécifiques si possible
 SECRET_JKEY = os.getenv('SECRET_JKEY')
 
 dict_users = gestion_admin.import_dict_users_s3()
@@ -44,58 +45,6 @@ def login():
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-'''@app.route('/folder', methods=['GET'])
-def folder():
-    token = request.headers.get('Authorization')
-    if not token:
-        return jsonify({'message': 'Token is missing'}), 403
-
-    try:
-        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        return jsonify({'message': 'Token has expired'}), 403
-    except jwt.InvalidTokenError:
-        return jsonify({'message': 'Invalid token'}), 403
-
-    user_folder = gestion_db_users.dossier_principal_user(decoded_token)
-    dict_sous_dossiers = gestion_db_users.dossiers_secondaires_user(decoded_token)
-
-    print("allo", file=sys.stderr)
-    print(dict_sous_dossiers, file=sys.stderr)
-    #vrai_nom_dossier = gestion_db_users.trouver_NOM_physique_fichier(dict_sous_dossiers)
-    response = dict_sous_dossiers
-    return jsonify(response), 200'''
-
-
-'''@app.route('/admin/update-files', methods=['POST'])
-@check_token_admin
-def synchro_fichiers_vm_avec_s3():
-    gestion_admin.synchro_files_vm_avec_s3()
-    return jsonify({'message': 'Les fichiers locaux sont à jour avec le s3'})'''
-
-'''@app.route('/admin/create_folder_MO_gemapi', methods=['POST'])
-@check_token_admin
-def creation_dossiers_MO_gemapi():
-    gestion_admin.actualisation_dossier_MO()
-    return jsonify({'message': 'Les dossiers MO gemapi sont à jour'})'''
-
-'''@app.route('/carte_MIA_MO_syndicat', methods=['GET'])
-def geodata():
-    token = request.headers.get('Authorization')
-    if not token:
-        return jsonify({'message': 'Token is missing'}), 403
-
-    try:
-        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        return jsonify({'message': 'Token has expired'}), 403
-    except jwt.InvalidTokenError:
-        return jsonify({'message': 'Invalid token'}), 403
-
-    CODE_DEP = decoded_token['CODE_DEP']
-    print(CODE_DEP, file=sys.stderr)
-    geojson_data=creation_carte.creation_carto_syndicats(CODE_DEP)
-    return jsonify(geojson_data)'''
 
 @app.route('/geojson_complet_folders', methods=['GET'])
 def geojson_complet_folders():
@@ -118,7 +67,6 @@ def geojson_complet_folders():
     geojson_data=creation_carte.creation_carto_syndicats(CODE_DEP)
 
     dict_folders = {item['id']:item for item in dict_sous_dossiers}
-    dict_combined = {}
 
     for num,feature in enumerate(geojson_data['features']):
         if feature['id'] in dict_folders:
@@ -133,7 +81,6 @@ def bbox():
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'message': 'Token is missing'}), 403
-
     try:
         decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
@@ -156,6 +103,39 @@ def get_info(id):
         return jsonify(info), 200
     else:
         return jsonify({'error': 'ID not found'}), 404
+
+
+@app.route('/vierge_DORA', methods=['POST'])
+def creer_tableau_vierge_DORA():
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 403 
+    
+    print(request.form)
+    id_folder = request.form.get('id', '')
+    name = request.form.get('name', '')
+    path = os.path.join("MO_gemapi",id_folder)
+
+    df_vierge_MO = creation_tableau_vierge_DORA.create_tableau_vierge_DORA([name])
+
+    path = os.path.join("MO_gemapi",id_folder,"tableau_vierge_" + name + ".xlsx")
+
+    connect_path.upload_file_vers_s3("custom",df_vierge_MO,path)
+
+    return jsonify({'message': 'File created successfully'}), 201
+
+@app.route('/download_file', methods=['GET'])
+def download_file():
+    url = connect_path.download_file_from_s3("custom","allo")
+    return jsonify({'url': url})
+
 
 
 @app.route('/', defaults={'path': ''})

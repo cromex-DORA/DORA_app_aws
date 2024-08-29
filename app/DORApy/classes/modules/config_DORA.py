@@ -246,49 +246,50 @@ def import_dict_renommage_df_Osmose_final():
 
 def recuperation_excel_vierge_Osmose():
     filename = ("config\\Osmose\\TABLEAU_CREATION_OSMOSE_VIERGE.xlsx")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename)   
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename)   
     workbook = load_workbook(filename, read_only=False)
     return workbook
 
 def recuperation_excel_MIA_MO_vierge_DORA():
     filename = ("config\\DORA\\Tableau_suivi_MIA_MO_vierge.xlsx")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename)     
-    workbook = load_workbook(filename, read_only=False)
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename)
+    data = io.BytesIO(filename)
+    workbook = load_workbook(data, read_only=False)
     return workbook
 
 def recuperation_df_info_PPG_vierge_DORA():
     filename = ("config\\DORA\\Tableau_suivi_MIA_MO_vierge.xlsx")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename)     
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename)     
     df_info_PPG_vierge = pd.read_excel(filename, sheet_name="info PPG")
     return df_info_PPG_vierge
 
 def recuperation_excel_MIA_DEP_vierge_DORA():
     filename = ("config\\DORA\\Tableau_suivi_MIA_DEP_vierge.xlsx")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
     workbook = load_workbook(filename, read_only=False)
     return workbook
 
 def import_onglet_vierge_blocage_Osmose():
     filename = ("config\\Osmose\\tableau import onglet blocage.csv")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
     df_vierge_Osmose_onglet_blocage = pd.read_csv(filename)
     return df_vierge_Osmose_onglet_blocage
 
 def import_onglet_vierge_etapes_Osmose():
     filename = ("config\\Osmose\\tableau import onglet etapes.csv")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
     df_vierge_Osmose_onglet_etapes = pd.read_csv(filename)
     return df_vierge_Osmose_onglet_etapes
 
 def import_onglet_vierge_financeurs_Osmose():
     filename = ("config\\Osmose\\tableau import onglet financeurs.csv")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
     df_vierge_Osmose_onglet_financeurs = pd.read_csv(filename)
     return df_vierge_Osmose_onglet_financeurs
 
 def recuperation_df_info_complementaire_info_CODE_Osmose():
     filename = ("config\\Osmose\\Osmose_code_action_sous_domaine.csv")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename) 
     df_info_complementaire_info_CODE_Osmose = pd.read_csv(filename)
     liste_osmose = []
     liste_osmose2 = []

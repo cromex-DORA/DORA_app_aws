@@ -2,25 +2,44 @@
 import pandas as pd
 from app.DORApy.classes import Class_NDictGdf,Class_NGdfREF
 from flask import Flask, send_from_directory, jsonify, request
-from app.DORApy import creation_carte
+from app.DORApy import gestion_admin,creation_tableau_vierge_DORA
 from app.DORApy.decorators.token_admin import check_token_admin
 from app.DORApy.classes import Class_Folder
-import geopandas as gpd
+from app.DORApy.classes.modules import connect_path,config_DORA
+import os
+import boto3
+from tempfile import NamedTemporaryFile
+
+bucket_files_common = os.getenv('S3_BUCKET_COMMON_FILES')
+bucket_files_custom = os.getenv('S3_BUCKET_USERS_FILES')
+
+s3_region = os.getenv('S3_UPLOADS_REGION')
+s3_access_key = os.getenv('S3_UPLOADS_ACCESS_KEY')
+s3_secret_key = os.getenv('S3_UPLOADS_SECRET_KEY')
 
 ###Fichiers config
 import os
-bucket_users_files = os.getenv('S3_BUCKET_USERS_FILES')
-folder_prefix = 'MO_gemapi/'
-folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)
-geojson_data=creation_carte.creation_carto_syndicats("33")
-dict_folders = {item['id']:item for item in folders}
-dict_combined = {}
 
-for num,feature in enumerate(geojson_data['features']):
-    if feature['id'] in dict_folders:
-       geojson_data['features'][num]['properties'] = dict_folders[feature['id']] | feature['properties']
-    
-print("coucou")
+s3r = boto3.resource('s3',
+    region_name=s3_region,
+    aws_access_key_id=s3_access_key,
+    aws_secret_access_key=s3_secret_key
+)
+
+def upload_workbook(workbook, bucket, key):
+    with NamedTemporaryFile() as tmp:
+        workbook.save(tmp.name)
+        tmp.seek(0)
+        s3r.meta.client.upload_file(tmp.name, bucket, key)
+
+excel_modif = creation_tableau_vierge_DORA.create_tableau_vierge_DORA(["BORDEAUX METROPOLE"])
+
+bucket_users_files = os.getenv('S3_BUCKET_USERS_FILES')
+#excel_modif = config_DORA.recuperation_excel_MIA_MO_vierge_DORA()
+path = os.path.join("MO_gemapi","MO_gemapi_10041","tableau_vierge_prout.xlsx")
+upload_workbook(excel_modif, "doras3bdddorabucket", path)
+
+#connect_path.upload_file_vers_s3("custom","doras3bdddorabucket",path)
 #ajout_MO_ou_PPG.ajout_shp_MO_ou_PPG("PPG")
 
 #couche_test = gpd.read_file("D:/projet_DORA/shp_files/ME/BV Me sup AG 2021.shp")

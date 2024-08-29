@@ -13,7 +13,6 @@ const FolderContent = () => {
     const [view, setView] = useState('folders'); // 'folders' or 'files'
     const [bounds, setBounds] = useState([]);
     const [highlightedFolderId, setHighlightedFolderId] = useState(null);
-    const [filter, setFilter] = useState('Syndicat'); // State for filtering the map data
 
     const fetchContent = async () => {
         const token = localStorage.getItem('token');
@@ -55,16 +54,31 @@ const FolderContent = () => {
         fetchContent();
     }, []);
 
-    const selectedOption = "Syndicat"
+    const createFile = async () => {
+        const formData = new FormData();
+        formData.append('id', selectedFolderId);  
+        formData.append('name', folderName); 
+        formData.append('path', currentPath); 
 
-    const filteredGeoJsonData = geoJsonData ? {
-        ...geoJsonData,
-        features: geoJsonData.features.filter(feature => {
-            // Utiliser la valeur du filtre sélectionné
-            const typeMO = feature.properties['TYPE_MO'];
-            return selectedOption ? typeMO === selectedOption : true;
-        })
-    } : null;
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`${process.env.REACT_APP_IP_SERV}/vierge_DORA`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': token,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            
+            console.log('Tableau vierge DORA créé !'); // Log de débogage
+            fetchContent(); // Actualiser le contenu du dossier
+        } catch (error) {
+            console.error('Échec de la création du fichier:', error);
+        }
+    };
+
 
     useEffect(() => {
         if (selectedFolderId) {
@@ -94,43 +108,39 @@ const FolderContent = () => {
         setView('folders');
     };
 
-    return (
-            <div className="app-container">
-            <div className="folder-content-container">
-                {/* Afficher le bouton "Back" seulement si nous ne sommes pas dans la vue des dossiers */}
-                {view === 'files' && (
+return (
+    <div className="app-container">
+        <div className="folder-content-container">
+            {view === 'files' && (
+                <>
                     <button onClick={handleBackClick} style={{ marginBottom: '10px' }}>
                         Back
                     </button>
-                )}
-                <FolderList
-                    folders={view === 'folders' ? folders : []}
-                    files={view === 'files' ? files : []}
-                    currentPath={currentPath}
-                    folderName={folderName}
-                    handleFolderClick={handleFolderClick}
-                    downloadFile={(file) => { /* Télécharger le fichier */ }}
-                    highlightedFolderId={highlightedFolderId}
-                    setHighlightedFolderId={setHighlightedFolderId} // Passer l'ID du dossier en survol
-                />
-            </div>
-            <div className="map-container">
-                <MapDEPMOgemapi
-                    geoJsonData={filteredGeoJsonData}
-                    setSelectedFolderId={setSelectedFolderId}
-                    bounds={bounds}
-                    highlightedFolderId={highlightedFolderId}
-                    setHighlightedFolderId={setHighlightedFolderId}
-                />
-            </div>
-            <div className="info-panel-section">
-                {/* Autres sections ou informations */}
-            </div>
-            <div className="other-section">
-                {/* Autres sections ou informations */}
-            </div>
+                    <button onClick={createFile} style={{ marginBottom: '10px', marginLeft: '10px' }}>
+                        Créer fichier DORA
+                    </button>
+                </>
+            )}
+            <FolderList
+                folders={view === 'folders' ? folders : []}
+                files={view === 'files' ? files : []}
+                currentPath={currentPath}
+                folderName={folderName}
+                handleFolderClick={handleFolderClick}
+                highlightedFolderId={highlightedFolderId}
+                setHighlightedFolderId={setHighlightedFolderId} // Passer l'ID du dossier en survol
+            />
         </div>
-    );
+
+        <div className="info-panel-section">
+            {/* Autres sections ou informations */}
+        </div>
+        <div className="other-section">
+            {/* Autres sections ou informations */}
+        </div>
+    </div>
+);
+
 };
 
 export default FolderContent;

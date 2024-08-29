@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import boto3
 import os
 import io
-import pandas as pd
+from tempfile import NamedTemporaryFile
 from pyexcel_ods3 import get_data
 load_dotenv()
 
@@ -53,10 +53,9 @@ def conv_s3_obj_vers_python_obj(type_bucket,file_name):
     if file_name.split(".")[-1]=="csv":
         csv_content = csv_obj['Body'].read().decode('utf-8')
         obj_python = io.StringIO(csv_content)
-    if file_name.split(".")[-1]=="ods":
+    if file_name.split(".")[-1] in ["ods","xlsx","xlsm"]:
         obj_python = csv_obj['Body'].read()
     return obj_python
-
 
 def get_file_path_racine(file_name):
     if environment == 'production':
@@ -68,3 +67,36 @@ def get_file_path_racine(file_name):
         file_name = file_name.replace("\\","/")
         local_file_path = os.path.join(definir_PATH_DOSSIER_MAITRE_racine(),file_name)
         return local_file_path
+    
+def upload_file_vers_s3(type_bucket,file,path):
+    
+    def upload_workbook(workbook, bucket, key):
+        with NamedTemporaryFile() as tmp:
+            workbook.save(tmp.name)
+            tmp.seek(0)
+            s3r.meta.client.upload_file(tmp.name, bucket, key)  
+
+    if type_bucket == "config":
+        nom_bucket = bucket_files_common
+    if type_bucket == "custom":
+        nom_bucket = bucket_files_custom
+    extension = os.path.splitext(path)[1][1:]
+    if extension == "xlsx":
+        upload_workbook(file, nom_bucket, path)
+    
+def download_file_from_s3(type_bucket,filename):
+    if type_bucket == "config":
+        nom_bucket = bucket_files_common
+    if type_bucket == "custom":
+        nom_bucket = bucket_files_custom   
+    S3_KEY = 'MO_gemapi/db_users(1).csv' 
+    url = s3.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket': nom_bucket,
+            'Key': S3_KEY
+        },
+        ExpiresIn=100
+    )
+    return url
+    

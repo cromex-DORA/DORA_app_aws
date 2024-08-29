@@ -108,7 +108,7 @@ def chercher_gdf_custom(dict_custom_maitre,dict_geom_REF,dict_dict_info_REF):
             gdf_custom_echelle_REF["ALIAS"] = gdf_custom_echelle_REF["NOM_custom"]
         if len(gdf_custom_echelle_REF)>0:
             list_tempo_gdf_custom.append(gdf_custom_echelle_REF)
-            list_date.append(dict_geom_REF['gdf_'+echelle_REF].date_modif)
+            #list_date.append(dict_geom_REF['gdf_'+echelle_REF].date_modif)
     if len(list_tempo_gdf_custom)>0:
         gdf_REF_total = pd.concat(list_tempo_gdf_custom)
     if len(list_tempo_gdf_custom)==0:
@@ -117,7 +117,7 @@ def chercher_gdf_custom(dict_custom_maitre,dict_geom_REF,dict_dict_info_REF):
     gdf_REF_total = gdf_REF_total.reset_index(drop=True)
     gdf_REF = NGdfREF("custom",path=None,type_geom="polygon")
     gdf_REF.gdf = gdf_REF_total
-    gdf_REF.date_modif = sorted(list_date)[0]
+    #gdf_REF.date_modif = sorted(list_date)[0]
     return gdf_REF
 
 def traitement_gdf_pour_geojson(geometry):

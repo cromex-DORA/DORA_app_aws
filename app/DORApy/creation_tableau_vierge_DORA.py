@@ -26,6 +26,7 @@ def create_tableau_vierge_DORA(liste_NOM_custom):
     dict_dict_info_REF = DictDfInfoShp({})
     dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
 
+
     dict_geom_REF = Class_NDictGdf.NDictGdf({})
     dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre,dict_dict_info_REF)
 

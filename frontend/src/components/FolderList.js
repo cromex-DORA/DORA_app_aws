@@ -7,8 +7,7 @@ const FolderList = ({
     folderName, 
     highlightedFolderId, 
     setHighlightedFolderId, 
-    handleFolderClick, 
-    downloadFile
+    handleFolderClick
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -19,6 +18,39 @@ const FolderList = ({
     const filteredFolders = folders.filter(folder =>
         folder.name.toLowerCase().includes(searchQuery)
     );
+
+const downloadFile = async (path) => {
+    const token = localStorage.getItem('token');
+
+    try {
+        const response = await fetch(`${process.env.REACT_APP_IP_SERV}/download_file?file_key=${encodeURIComponent(path)}`, {
+            headers: { 'Authorization': token }
+        });
+
+        // Afficher le texte brut de la réponse
+        const text = await response.text();
+        console.log('Response text:', text);
+
+
+        // Convertir en JSON si possible
+        try {
+            const data = JSON.parse(text);
+            if (data.url) {
+                window.location.href = data.url;  // Redirige vers l'URL de téléchargement
+            } else {
+                console.error('Download URL not found in the response');
+            }
+        } catch (jsonError) {
+            console.error('Failed to parse JSON:', jsonError);
+        }
+
+    } catch (error) {
+        console.error('Échec du téléchargement du fichier:', error);
+    }
+};
+
+
+
 
     return (
         <div>
