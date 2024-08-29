@@ -31,7 +31,7 @@ const FolderContent = () => {
                 name: feature.properties.NOM_MO,
                 files: feature.properties.files || []  // Assume files are in properties
             }));
-            
+
             setFolders(folderData);
 
             // Fetch Bounds Data
@@ -56,9 +56,9 @@ const FolderContent = () => {
 
     const createFile = async () => {
         const formData = new FormData();
-        formData.append('id', selectedFolderId);  
-        formData.append('name', folderName); 
-        formData.append('path', currentPath); 
+        formData.append('id', selectedFolderId);
+        formData.append('name', folderName);
+        formData.append('path', currentPath);
 
         const token = localStorage.getItem('token');
         try {
@@ -71,7 +71,7 @@ const FolderContent = () => {
             });
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            
+
             console.log('Tableau vierge DORA créé !'); // Log de débogage
             fetchContent(); // Actualiser le contenu du dossier
         } catch (error) {
@@ -108,39 +108,47 @@ const FolderContent = () => {
         setView('folders');
     };
 
-return (
-    <div className="app-container">
-        <div className="folder-content-container">
-            {view === 'files' && (
-                <>
-                    <button onClick={handleBackClick} style={{ marginBottom: '10px' }}>
-                        Back
-                    </button>
-                    <button onClick={createFile} style={{ marginBottom: '10px', marginLeft: '10px' }}>
-                        Créer fichier DORA
-                    </button>
-                </>
-            )}
-            <FolderList
-                folders={view === 'folders' ? folders : []}
-                files={view === 'files' ? files : []}
-                currentPath={currentPath}
-                folderName={folderName}
-                handleFolderClick={handleFolderClick}
-                highlightedFolderId={highlightedFolderId}
-                setHighlightedFolderId={setHighlightedFolderId}
-                selectedFolderId={selectedFolderId}
-            />
+    return (
+        <div className="app-container">
+            <div className="folder-content-container">
+                {view === 'files' && (
+                    <>
+                        <button onClick={handleBackClick} style={{ marginBottom: '10px' }}>
+                            Back
+                        </button>
+                        <button onClick={createFile} style={{ marginBottom: '10px', marginLeft: '10px' }}>
+                            Créer fichier DORA
+                        </button>
+                    </>
+                )}
+                <FolderList
+                    folders={view === 'folders' ? folders : []}
+                    files={view === 'files' ? files : []}
+                    currentPath={currentPath}
+                    folderName={folderName}
+                    handleFolderClick={handleFolderClick}
+                    highlightedFolderId={highlightedFolderId}
+                    setHighlightedFolderId={setHighlightedFolderId}
+                    selectedFolderId={selectedFolderId}
+                />
+            </div>
+            <div className="map-container">
+                <MapDEPMOgemapi
+                    geoJsonData={geoJsonData}
+                    setSelectedFolderId={setSelectedFolderId}
+                    bounds={bounds}
+                    highlightedFolderId={highlightedFolderId}
+                    setHighlightedFolderId={setHighlightedFolderId}
+                />
+            </div>
+            <div className="info-panel-section">
+                {/* Autres sections ou informations */}
+            </div>
+            <div className="other-section">
+                {/* Autres sections ou informations */}
+            </div>
         </div>
-
-        <div className="info-panel-section">
-            {/* Autres sections ou informations */}
-        </div>
-        <div className="other-section">
-            {/* Autres sections ou informations */}
-        </div>
-    </div>
-);
+    );
 
 };
 
