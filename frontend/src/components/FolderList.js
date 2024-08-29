@@ -7,7 +7,8 @@ const FolderList = ({
     folderName, 
     highlightedFolderId, 
     setHighlightedFolderId, 
-    handleFolderClick
+    handleFolderClick,
+    selectedFolderId
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -20,17 +21,22 @@ const FolderList = ({
     );
 
 const downloadFile = async (path) => {
+    // Log avant l'appel de fetch pour vérifier que la fonction est bien appelée
+    console.log('Attempting to download file from path:', path);
+
     const token = localStorage.getItem('token');
 
     try {
-        const response = await fetch(`${process.env.REACT_APP_IP_SERV}/download_file?file_key=${encodeURIComponent(path)}`, {
+        const url = `${process.env.REACT_APP_IP_SERV}/download_file?file_key=${encodeURIComponent(path)}`;
+        console.log('Fetching URL du prout:', url);  // Log de l'URL que vous essayez de joindre
+
+        const response = await fetch(url, {
             headers: { 'Authorization': token }
         });
 
         // Afficher le texte brut de la réponse
         const text = await response.text();
-        console.log('Response text:', text);
-
+        console.log('Response text du prout:', text);
 
         // Convertir en JSON si possible
         try {
@@ -48,9 +54,6 @@ const downloadFile = async (path) => {
         console.error('Échec du téléchargement du fichier:', error);
     }
 };
-
-
-
 
     return (
         <div>
@@ -82,10 +85,7 @@ const downloadFile = async (path) => {
                 ))}
                 {files.map((file, index) => (
                     <li key={index}>
-                        <span
-                            onClick={() => downloadFile(currentPath ? `${currentPath}/${file}` : file)}
-                            style={{ cursor: 'pointer', color: 'blue' }}
-                        >
+                        <span onClick={() => downloadFile(selectedFolderId ? `${selectedFolderId}/${file}` : file)} style={{ cursor: 'pointer', color: 'blue' }}>
                             {file}
                         </span>
                     </li>

@@ -128,7 +128,8 @@ return (
                 folderName={folderName}
                 handleFolderClick={handleFolderClick}
                 highlightedFolderId={highlightedFolderId}
-                setHighlightedFolderId={setHighlightedFolderId} // Passer l'ID du dossier en survol
+                setHighlightedFolderId={setHighlightedFolderId}
+                selectedFolderId={selectedFolderId}
             />
         </div>
 

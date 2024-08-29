@@ -84,17 +84,17 @@ def upload_file_vers_s3(type_bucket,file,path):
     if extension == "xlsx":
         upload_workbook(file, nom_bucket, path)
     
-def download_file_from_s3(type_bucket,filename):
+def download_file_from_s3(type_bucket,file_key):
     if type_bucket == "config":
         nom_bucket = bucket_files_common
     if type_bucket == "custom":
         nom_bucket = bucket_files_custom   
-    S3_KEY = 'MO_gemapi/db_users(1).csv' 
+    complet_path = os.path.join("MO_gemapi",file_key)
     url = s3.generate_presigned_url(
         'get_object',
         Params={
             'Bucket': nom_bucket,
-            'Key': S3_KEY
+            'Key': complet_path
         },
         ExpiresIn=100
     )

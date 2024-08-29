@@ -133,7 +133,11 @@ def creer_tableau_vierge_DORA():
 
 @app.route('/download_file', methods=['GET'])
 def download_file():
-    url = connect_path.download_file_from_s3("custom","allo")
+    file_key = request.args.get('file_key')
+    if not file_key:
+        return jsonify({'error': 'File path is required'}), 400
+    print(file_key)
+    url = connect_path.download_file_from_s3("custom",file_key)
     return jsonify({'url': url})
 
 
