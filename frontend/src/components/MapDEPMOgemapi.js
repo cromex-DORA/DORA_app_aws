@@ -4,40 +4,77 @@ import FiltretypeMO from './FiltretypeMO';
 import 'leaflet/dist/leaflet.css';
 import './MapDEPMOgemapi.css';
 
-const MapViewUpdater = ({ bounds }) => {
+const ZoomToBounds = ({ bounds }) => {
     const map = useMap();
 
     useEffect(() => {
-        if (bounds && bounds.length === 2) {
-            map.fitBounds(bounds);
+        if (bounds) {
+            map.fitBounds(bounds); // Ajuste la vue de la carte pour cadrer les limites
         }
     }, [bounds, map]);
 
     return null;
 };
 
-const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedFolderId, setHighlightedFolderId }) => {
+const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, highlightedFolderId, setHighlightedFolderId }) => {
     const [filter, setFilter] = useState('Syndicat');
     const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
+    const [initialBounds, setInitialBounds] = useState(null);
+    const [selectedBounds, setSelectedBounds] = useState(null);
     const mapRef = useRef();
     const geoJsonLayerRef = useRef();
 
+    // Fetch initial bounds on mount
+    useEffect(() => {
+        const fetchInitialBounds = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error("Token is missing");
+                return;
+            }
+
+            try {
+            const bboxResponse = await fetch(`${process.env.REACT_APP_IP_SERV}/bb_box`, {
+                headers: { 'Authorization': token }
+            });
+
+                if (!bboxResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${bboxResponse.status}`);
+                }
+                const bboxData = await bboxResponse.json();
+                const bounds = [
+                    [bboxData.miny, bboxData.minx], // [latitude minimale, longitude minimale]
+                    [bboxData.maxy, bboxData.maxx]  // [latitude maximale, longitude maximale]
+                ];
+                setInitialBounds(bounds); // Mettre à jour initialBounds
+            } catch (error) {
+                console.error('Error fetching bounding box:', error);
+            }
+        };
+
+        fetchInitialBounds();
+    }, []);
 
     // Effect to filter GeoJSON data when geoJsonData or filter changes
-    useEffect(() => {
-        if (geoJsonData) {
-            const updatedFilteredData = {
+useEffect(() => {
+    if (geoJsonData) {
+        const updatedFilteredData = {
             ...geoJsonData,
-                    features: geoJsonData.features.filter(feature => {
-                        // Utiliser la valeur du filtre sélectionné
-                        const typeMO = feature.properties['TYPE_MO'];
-                        return filter ? typeMO === filter : true;
-                    })
-            };
-            setFilteredGeoJsonData(updatedFilteredData);
-        }
-    }, [filter,geoJsonData]);
+            features: geoJsonData.features.filter(feature => {
+                // Utiliser la valeur du filtre sélectionné
+                const typeMO = feature.properties['TYPE_MO'];
+                return filter ? typeMO === filter : true;
+            })
+        };
 
+        // Afficher updatedFilteredData dans la console
+        console.log('Updated Filtered Data:', updatedFilteredData);
+
+        setFilteredGeoJsonData(updatedFilteredData);
+    }
+}, [filter, geoJsonData]);
+
+    // Update GeoJSON layer style when highlightedFolderId changes
     useEffect(() => {
         if (geoJsonLayerRef.current && filteredGeoJsonData) {
             geoJsonLayerRef.current.eachLayer(layer => {
@@ -63,6 +100,9 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedF
         layer.on({
             click: () => {
                 setSelectedFolderId(feature.id);
+                const bounds = layer.getBounds();
+                console.log("bounds",bounds)
+                setSelectedBounds(bounds);
             },
             mouseover: () => {
                 setHighlightedFolderId(feature.id);
@@ -85,12 +125,16 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedF
         });
     };
 
+    // Wait for initialBounds to be set before rendering the map
+    if (!initialBounds) {
+        return <div>Loading map...</div>;
+    }
+
     return (
         <div className="map-container">
             <FiltretypeMO selectedOption={filter} setSelectedOption={setFilter} />
             <MapContainer
-                center={[44, -0.98196]}
-                zoom={14}
+                bounds={initialBounds} // Set the initial bounds here
                 className="map"
                 whenCreated={map => { mapRef.current = map; }}
             >
@@ -111,7 +155,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, bounds, highlightedF
                         ref={geoJsonLayerRef}
                     />
                 )}
-                <MapViewUpdater bounds={bounds} />
+                <ZoomToBounds bounds={selectedBounds} />
             </MapContainer>
         </div>
     );

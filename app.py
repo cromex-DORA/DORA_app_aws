@@ -9,6 +9,7 @@ from app.DORApy import gestion_admin,creation_tableau_vierge_DORA
 import jwt
 import datetime
 import sys
+import pandas as pd
 from app.DORApy.classes.modules import connect_path,config_DORA
 
 app = Flask(__name__, static_folder='frontend/build')
@@ -79,6 +80,7 @@ def geojson_complet_folders():
 @app.route('/bb_box', methods=['GET'])
 def bbox():
     token = request.headers.get('Authorization')
+    
     if not token:
         return jsonify({'message': 'Token is missing'}), 403
     try:
@@ -86,10 +88,11 @@ def bbox():
     except jwt.ExpiredSignatureError:
         return jsonify({'message': 'Token has expired'}), 403
     except jwt.InvalidTokenError:
-        return jsonify({'message': 'Invalid token'}), 403 
-    
+        return jsonify({'message': 'Invalid token'}), 403
+    print("coucou", file=sys.stderr)
     dict_bb_box=creation_carte.creation_bb_REF("DEP","33")
-
+    
+    print(jsonify(dict_bb_box), file=sys.stderr)
     return jsonify(dict_bb_box)
 
 @app.route('/info/<string:id>', methods=['GET'])

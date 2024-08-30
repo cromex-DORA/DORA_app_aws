@@ -65,28 +65,7 @@ class NGdfREF:
         geojson_data = json.loads(geojson_data)
         return geojson_data
     
-    def extraction_bb_REF_et_centre(self):
-
-        bbox = self.gdf.to_crs("EPSG:4326").total_bounds  # retourne [minx, miny, maxx, maxy]
-        facteur_zoom = 0
-        # Préparer la bounding box pour le JSON
-        centre_x = (bbox[2]+bbox[0])/2
-        centre_y = (bbox[3]+bbox[1])/2
-
-        bbox_dict = {
-            'minx': bbox[0]+(centre_x-bbox[0])*facteur_zoom,
-            'miny': bbox[1]+(centre_y-bbox[1])*facteur_zoom,
-            'maxx': bbox[2]-(bbox[2]-centre_x)*facteur_zoom,
-            'maxy': bbox[3]-(bbox[3]-centre_y)*facteur_zoom,
-        }
-
-        bbox_dict['center'] = []
-        bbox_dict['center'].append((bbox[3]+bbox[1])/2)
-        bbox_dict['center'].append((bbox[2]+bbox[0])/2)
-        bbox_dict['zoom'] = 10
-        
-        return bbox_dict
-            
+           
 
 
 def chercher_gdf_custom(dict_custom_maitre,dict_geom_REF,dict_dict_info_REF):

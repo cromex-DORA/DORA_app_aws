@@ -11,7 +11,6 @@ const FolderContent = () => {
     const [selectedFolderId, setSelectedFolderId] = useState(null);
     const [geoJsonData, setGeoJsonData] = useState(null);
     const [view, setView] = useState('folders'); // 'folders' or 'files'
-    const [bounds, setBounds] = useState([]);
     const [highlightedFolderId, setHighlightedFolderId] = useState(null);
 
     const fetchContent = async () => {
@@ -33,18 +32,7 @@ const FolderContent = () => {
             }));
 
             setFolders(folderData);
-
-            // Fetch Bounds Data
-            const bboxResponse = await fetch(`${process.env.REACT_APP_IP_SERV}/bb_box`, {
-                headers: { 'Authorization': token }
-            });
-            if (!bboxResponse.ok) throw new Error(`HTTP error! Status: ${bboxResponse.status}`);
-            const bboxData = await bboxResponse.json();
-            setBounds([
-                [bboxData.miny, bboxData.minx],
-                [bboxData.maxy, bboxData.maxx]
-            ]);
-
+            
         } catch (error) {
             console.error('Fetching content failed:', error);
         }
@@ -136,9 +124,9 @@ const FolderContent = () => {
                 <MapDEPMOgemapi
                     geoJsonData={geoJsonData}
                     setSelectedFolderId={setSelectedFolderId}
-                    bounds={bounds}
                     highlightedFolderId={highlightedFolderId}
                     setHighlightedFolderId={setHighlightedFolderId}
+                    selectedFolderId={selectedFolderId}
                 />
             </div>
             <div className="info-panel-section">

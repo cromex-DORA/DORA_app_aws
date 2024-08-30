@@ -4,8 +4,7 @@ from app.DORApy.classes import Class_NDictGdf,Class_NGdfREF
 from flask import Flask, send_from_directory, jsonify, request
 from app.DORApy import gestion_admin,creation_tableau_vierge_DORA
 from app.DORApy.decorators.token_admin import check_token_admin
-from app.DORApy.classes import Class_Folder
-from app.DORApy.classes.modules import connect_path,config_DORA
+from app.DORApy import creation_carte
 import os
 import boto3
 from tempfile import NamedTemporaryFile
@@ -17,27 +16,7 @@ s3_region = os.getenv('S3_UPLOADS_REGION')
 s3_access_key = os.getenv('S3_UPLOADS_ACCESS_KEY')
 s3_secret_key = os.getenv('S3_UPLOADS_SECRET_KEY')
 
-###Fichiers config
-import os
-
-s3r = boto3.resource('s3',
-    region_name=s3_region,
-    aws_access_key_id=s3_access_key,
-    aws_secret_access_key=s3_secret_key
-)
-
-def upload_workbook(workbook, bucket, key):
-    with NamedTemporaryFile() as tmp:
-        workbook.save(tmp.name)
-        tmp.seek(0)
-        s3r.meta.client.upload_file(tmp.name, bucket, key)
-
-excel_modif = creation_tableau_vierge_DORA.create_tableau_vierge_DORA(["BORDEAUX METROPOLE"])
-
-bucket_users_files = os.getenv('S3_BUCKET_USERS_FILES')
-#excel_modif = config_DORA.recuperation_excel_MIA_MO_vierge_DORA()
-path = os.path.join("MO_gemapi","MO_gemapi_10041","tableau_vierge_prout.xlsx")
-upload_workbook(excel_modif, "doras3bdddorabucket", path)
+geojson_data=creation_carte.creation_carto_syndicats("33")
 
 #connect_path.upload_file_vers_s3("custom","doras3bdddorabucket",path)
 #ajout_MO_ou_PPG.ajout_shp_MO_ou_PPG("PPG")

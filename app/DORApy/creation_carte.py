@@ -236,6 +236,11 @@ def creation_carto_syndicats(CODE_DEP):
     liste_MO_dans_le_DEP = df_info_MO.loc[(df_info_MO['CODE_DEP']==CODE_DEP)|(df_info_MO['TYPE_MO']=="EPTB")]['CODE_MO'].to_list()
     dict_gdf_MO.gdf = dict_gdf_MO.gdf.loc[dict_gdf_MO.gdf['CODE_MO'].isin(liste_MO_dans_le_DEP)]
     dict_gdf_MO.gdf = pd.merge(dict_gdf_MO.gdf,dict_gdf_MO.df_info[['CODE_MO',"TYPE_MO"]],on="CODE_MO")
+    bounds = dict_gdf_MO.gdf.to_crs("EPSG:4326").bounds
+    bounds['bounds'] = bounds.apply(lambda row: row.tolist(), axis=1)
+    bounds['bounds'] = bounds['bounds'].apply(lambda x:[[x[0],x[1]],[x[2],x[3]]])
+    bounds = bounds[['bounds']]
+    dict_gdf_MO.gdf = pd.merge(dict_gdf_MO.gdf,bounds,left_index=True,right_index=True)
     geojson_data = Class_NGdfREF.NGdfREF.export_gdf_pour_geojson(dict_gdf_MO)
     return geojson_data
 
@@ -244,6 +249,6 @@ def creation_bb_REF(REF,CODE_REF):
     dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=None,liste_echelle_REF=[REF])    
     dict_gdf =   dict_geom_REF['gdf_'+REF]
     dict_gdf.gdf = dict_gdf.gdf.loc[dict_gdf.gdf['CODE_'+REF]==CODE_REF]
-    dict_bbox = Class_NGdfREF.NGdfREF.extraction_bb_REF_et_centre(dict_gdf)
-    #geojson_data = json.dumps(dict_bbox)
-    return dict_bbox
+    bbox = dict_gdf.gdf.to_crs("EPSG:4326").bounds
+    bbox = bbox.to_dict('records')[0]
+    return bbox
