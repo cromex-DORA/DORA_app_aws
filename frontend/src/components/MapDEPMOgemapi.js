@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import FiltretypeMO from './FiltretypeMO';
 import 'leaflet/dist/leaflet.css';
 import './MapDEPMOgemapi.css';
+import { useMapEvents } from 'react-leaflet';
 
 const ZoomToBounds = ({ bounds }) => {
     const map = useMap();
@@ -16,11 +17,24 @@ const ZoomToBounds = ({ bounds }) => {
     return null;
 };
 
-const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, highlightedFolderId, setHighlightedFolderId }) => {
+const MapEvents = ({ setZoomLevel }) => {
+    useMapEvents({
+        zoomend: (e) => {
+            const zoom = e.target.getZoom();
+            setZoomLevel(zoom);
+            console.log("niveau zoom:", zoom); // Affiche le niveau de zoom dans la console
+        }
+    });
+
+    return null;
+};
+
+const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, setHighlightedFolderId }) => {
     const [filter, setFilter] = useState('Syndicat');
     const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
     const [initialBounds, setInitialBounds] = useState(null);
     const [selectedBounds, setSelectedBounds] = useState(null);
+    const [zoomLevel, setZoomLevel] = useState(null);
     const mapRef = useRef();
     const geoJsonLayerRef = useRef();
 
@@ -34,9 +48,9 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, highlightedFolderId,
             }
 
             try {
-            const bboxResponse = await fetch(`${process.env.REACT_APP_IP_SERV}/bb_box`, {
-                headers: { 'Authorization': token }
-            });
+                const bboxResponse = await fetch(`${process.env.REACT_APP_IP_SERV}/bb_box`, {
+                    headers: { 'Authorization': token }
+                });
 
                 if (!bboxResponse.ok) {
                     throw new Error(`HTTP error! Status: ${bboxResponse.status}`);
@@ -56,23 +70,19 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, highlightedFolderId,
     }, []);
 
     // Effect to filter GeoJSON data when geoJsonData or filter changes
-useEffect(() => {
-    if (geoJsonData) {
-        const updatedFilteredData = {
-            ...geoJsonData,
-            features: geoJsonData.features.filter(feature => {
-                // Utiliser la valeur du filtre sélectionné
-                const typeMO = feature.properties['TYPE_MO'];
-                return filter ? typeMO === filter : true;
-            })
-        };
+    useEffect(() => {
+        if (geoJsonData) {
+            const updatedFilteredData = {
+                ...geoJsonData,
+                features: geoJsonData.features.filter(feature => {
+                    const typeMO = feature.properties['TYPE_MO'];
+                    return filter ? typeMO === filter : true;
+                })
+            };
 
-        // Afficher updatedFilteredData dans la console
-        console.log('Updated Filtered Data:', updatedFilteredData);
-
-        setFilteredGeoJsonData(updatedFilteredData);
-    }
-}, [filter, geoJsonData]);
+            setFilteredGeoJsonData(updatedFilteredData);
+        }
+    }, [filter, geoJsonData]);
 
     // Update GeoJSON layer style when highlightedFolderId changes
     useEffect(() => {
@@ -96,12 +106,45 @@ useEffect(() => {
         }
     }, [highlightedFolderId, filteredGeoJsonData]);
 
+    // Effect to update bounds when selectedFolderId changes
+    useEffect(() => {
+        if (geoJsonLayerRef.current && filteredGeoJsonData) {
+            geoJsonLayerRef.current.eachLayer(layer => {
+                const featureId = layer.feature.id;
+                if (featureId === selectedFolderId) {
+                    const bounds = layer.getBounds(); // Get the bounds of the selected feature
+                    setSelectedBounds(bounds); // Set the bounds to zoom to
+                }
+            });
+        }
+    }, [selectedFolderId, filteredGeoJsonData]);
+
+
+    useEffect(() => {
+        if (geoJsonLayerRef.current && filteredGeoJsonData) {
+            geoJsonLayerRef.current.eachLayer(layer => {
+                const feature = layer.feature;
+
+                // Supprimez les tooltips existants
+                layer.unbindTooltip();
+
+                // Ajoutez les tooltips uniquement si le zoom est supérieur à 9
+                if (zoomLevel > 8 && feature.properties.ALIAS) {
+                    layer.bindTooltip(feature.properties.ALIAS, {
+                        permanent: true,
+                        direction: "center",
+                        className: "polygon-label" // Style des étiquettes
+                    });
+                }
+            });
+        }
+    }, [zoomLevel, filteredGeoJsonData]);
+
     const onEachFeature = (feature, layer) => {
         layer.on({
             click: () => {
-                setSelectedFolderId(feature.id);
                 const bounds = layer.getBounds();
-                console.log("bounds",bounds)
+                console.log("bounds", bounds);
                 setSelectedBounds(bounds);
             },
             mouseover: () => {
@@ -133,6 +176,7 @@ useEffect(() => {
     return (
         <div className="map-container">
             <FiltretypeMO selectedOption={filter} setSelectedOption={setFilter} />
+            <div className="zoom-level-display">Niveau de zoom: {zoomLevel}</div>
             <MapContainer
                 bounds={initialBounds} // Set the initial bounds here
                 className="map"
@@ -156,6 +200,7 @@ useEffect(() => {
                     />
                 )}
                 <ZoomToBounds bounds={selectedBounds} />
+                <MapEvents setZoomLevel={setZoomLevel} />
             </MapContainer>
         </div>
     );
