@@ -1,0 +1,27 @@
+/* modal_TAP_MO_GEMAPI.css */
+.modal-dialog {
+    max-width: 90vw; /* Ajuste la largeur de la modal */
+}
+
+.modal-content {
+    display: flex;
+}
+
+.modal-body {
+    display: flex;
+    padding: 0; /* Pour supprimer le padding par défaut */
+}
+
+.tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+}
+
+.form-container {
+    padding: 15px;
+}
+
+.map-container {
+    padding: 15px;
+}

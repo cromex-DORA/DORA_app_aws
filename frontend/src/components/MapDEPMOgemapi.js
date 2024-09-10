@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import FiltretypeMO from './FiltretypeMO';
+import TabImportShpModal from './TabImportShpModal';
 import 'leaflet/dist/leaflet.css';
 import './MapDEPMOgemapi.css';
+import { Button } from 'react-bootstrap';
 import { useMapEvents } from 'react-leaflet';
 
 const ZoomToBounds = ({ bounds }) => {
@@ -29,14 +31,23 @@ const MapEvents = ({ setZoomLevel }) => {
     return null;
 };
 
-const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, setHighlightedFolderId }) => {
+const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick }) => {
     const [filter, setFilter] = useState('Syndicat');
     const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
     const [initialBounds, setInitialBounds] = useState(null);
     const [selectedBounds, setSelectedBounds] = useState(null);
     const [zoomLevel, setZoomLevel] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const mapRef = useRef();
     const geoJsonLayerRef = useRef();
+
+    const openModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+    };
 
     // Fetch initial bounds on mount
     useEffect(() => {
@@ -108,7 +119,7 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
 
     // Effect to update bounds when selectedFolderId changes
     useEffect(() => {
-        if (geoJsonLayerRef.current && filteredGeoJsonData) {
+        if (geoJsonLayerRef.current && filteredGeoJsonData && selectedFolderId) {
             geoJsonLayerRef.current.eachLayer(layer => {
                 const featureId = layer.feature.id;
                 if (featureId === selectedFolderId) {
@@ -141,12 +152,22 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     }, [zoomLevel, filteredGeoJsonData]);
 
     const onEachFeature = (feature, layer) => {
-        layer.on({
-            click: () => {
-                const bounds = layer.getBounds();
-                console.log("bounds", bounds);
-                setSelectedBounds(bounds);
-            },
+    layer.on({
+        click: () => {
+            const bounds = layer.getBounds();
+            console.log("bounds", bounds);
+            setSelectedBounds(bounds);
+
+            // Appeler handleFolderClick avec l'ID du dossier correspondant
+            if (handleFolderClick) {
+                handleFolderClick({
+                    id: feature.id,
+                    name: feature.properties.NOM_MO,  // Assurez-vous que le nom du dossier est dans properties
+                    path: feature.properties.path || '', // Assurez-vous que le chemin est aussi dans properties
+                    files: feature.properties.files || [] // Assurez-vous que les fichiers sont dans properties
+                });
+            }
+        },
             mouseover: () => {
                 setHighlightedFolderId(feature.id);
                 layer.setStyle({
@@ -175,8 +196,17 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
 
     return (
         <div className="map-container">
-            <FiltretypeMO selectedOption={filter} setSelectedOption={setFilter} />
-            <div className="zoom-level-display">Niveau de zoom: {zoomLevel}</div>
+            <div className="sidebar">
+                <FiltretypeMO selectedOption={filter} setSelectedOption={setFilter} />
+                <Button className="import-button" onClick={openModal}>
+                    Importer des polygones manquants
+                </Button>
+                <TabImportShpModal
+                    isOpen={isModalOpen}
+                    onRequestClose={closeModal}
+                    initialBounds={initialBounds}
+                />
+            </div>
             <MapContainer
                 bounds={initialBounds} // Set the initial bounds here
                 className="map"

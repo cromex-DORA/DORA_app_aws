@@ -28,20 +28,6 @@ def attribution_NOM_MO(liste_nom_synd,liste_couche_synd):
             couche['NOM_custom'] = couche[liste_nom_colonne_potentiel_pour_nommage_unique[-1]].to_list()
     return liste_nom_synd,liste_couche_synd
 
-def concatenation_liste_synd(liste_nom_synd,liste_couche_synd):
-    #On liste tous les fichiers shp des dossiers syndicats
-    gdf_gros_synd=pd.concat(liste_couche_synd)
-    if "issu_BDD" in list(gdf_gros_synd):
-        gdf_gros_synd.loc[~gdf_gros_synd["issu_BDD"]==True,"issu_BDD"] = False
-    if "issu_BDD" not in list(gdf_gros_synd):
-        gdf_gros_synd["issu_BDD"] = False
-    gdf_gros_synd = gdf_gros_synd.rename(columns={'geometry':'geometry_custom'})
-    gdf_gros_synd = gdf_gros_synd.set_geometry('geometry_custom')
-    #On cherche un éventuel Alias dans les couches pour l'afficher é la palce du nom complet du custom
-    liste_colonnes_a_garder_couche_custom = ['geometry_custom']
-    gdf_gros_synd = gdf_gros_custom(gdf_gros_synd)
-    gdf_gros_synd.modifier_liste_colonnes_a_garder_couche_custom(liste_colonnes_a_garder_couche_custom)
-    return gdf_gros_synd
 
 def filtrage_par_custom_si_projet_action(self,gdf_gros_custom):
     if self.type_donnees == 'action':

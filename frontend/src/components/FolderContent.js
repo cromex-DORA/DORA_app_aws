@@ -127,6 +127,7 @@ const FolderContent = () => {
                     highlightedFolderId={highlightedFolderId}
                     setHighlightedFolderId={setHighlightedFolderId}
                     selectedFolderId={selectedFolderId}
+                    handleFolderClick={handleFolderClick}
                 />
             </div>
             <div className="info-panel-section">

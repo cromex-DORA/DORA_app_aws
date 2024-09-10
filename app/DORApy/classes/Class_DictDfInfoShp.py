@@ -84,7 +84,7 @@ class DictDfInfoShp(dict):
         self['df_info_BVG'] = DfInfoShp(self['df_info_BVG'])
         self['df_info_BVG']['liste_CODE_ME'] = [x.replace("'","") for x in self['df_info_BVG']['liste_CODE_ME'].to_list()]
         self['df_info_BVG'].set_attributs_df_info_shp('BVG',"NOM_BVG")
-        self['df_info_BVG'].ajout_dict_CODE_NOM_et_dict_NOM_CODE()      
+        self['df_info_BVG'].ajout_dict_CODE_NOM_et_dict_NOM_CODE()
         return self
     
     def import_info_SAGE(self):
@@ -92,8 +92,8 @@ class DictDfInfoShp(dict):
         self['df_info_SAGE'] = connect_path.conv_s3_obj_vers_python_obj("config",filename)
         self['df_info_SAGE'] = pd.read_csv(self['df_info_SAGE'])
         self['df_info_SAGE'] = DfInfoShp(self['df_info_SAGE'])
-        self['df_info_SAGE'].set_attributs_df_info_shp('SAGE',"NOM_SAGE")   
-        self['df_info_SAGE'].ajout_dict_CODE_NOM_et_dict_NOM_CODE()     
+        self['df_info_SAGE'].set_attributs_df_info_shp('SAGE',"NOM_SAGE")
+        self['df_info_SAGE'].ajout_dict_CODE_NOM_et_dict_NOM_CODE()
         return self
     
     def import_info_ROE(self):

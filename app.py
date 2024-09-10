@@ -1,7 +1,7 @@
 from flask import Flask, send_from_directory, jsonify, request, Response
 import os
 from flask_cors import CORS
-from app.DORApy import creation_carte
+from app.DORApy import creation_carte,ajout_MO_ou_PPG
 from app.DORApy.security import gestion_db_users,gestion_file_upload
 from app.DORApy.classes.modules import connect_path
 from app.DORApy import gestion_admin,creation_tableau_vierge_DORA
@@ -10,6 +10,8 @@ import jwt
 import datetime
 import sys
 import pandas as pd
+import tempfile
+from werkzeug.utils import secure_filename
 from app.DORApy.classes.modules import connect_path,config_DORA
 
 app = Flask(__name__, static_folder='frontend/build')
@@ -143,6 +145,42 @@ def download_file():
     url = connect_path.download_file_from_s3("custom",file_key)
     return jsonify({'url': url})
 
+@app.route('/upload_MO_gemapi', methods=['POST'])
+def upload_MO_gemapi():
+    print("allo", file=sys.stderr)
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 403 
+
+    files = request.files.getlist('files')
+
+    temp_dir = tempfile.mkdtemp()
+
+    for file in files:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(temp_dir, filename)
+        file.save(file_path)
+
+    # Create a temporary directory to save uploaded files
+    try:
+        geojson = ajout_MO_ou_PPG.conv_shp_en_geojson(files,temp_dir)
+        # Read the shapefiles using geopandas
+        for file in os.listdir(temp_dir):
+            os.remove(os.path.join(temp_dir, file))
+        os.rmdir(temp_dir)
+
+        return jsonify(geojson)
+
+    except Exception as e:
+        print(f"Error processing files: {e}")
+        return jsonify({'message': 'Error processing files'}), 500
 
 
 @app.route('/', defaults={'path': ''})

@@ -64,9 +64,6 @@ class NGdfREF:
         geojson_data = gdf.to_json()
         geojson_data = json.loads(geojson_data)
         return geojson_data
-    
-           
-
 
 def chercher_gdf_custom(dict_custom_maitre,dict_geom_REF,dict_dict_info_REF):
     list_tempo_gdf_custom = []

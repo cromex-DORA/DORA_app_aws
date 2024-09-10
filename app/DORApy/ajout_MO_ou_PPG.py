@@ -1,10 +1,26 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
+import sys
+import geopandas as gpd
+import json
 
 pd.set_option("display.max_rows", None, "display.max_columns", None,'display.max_colwidth',None)
 from app.DORApy.classes.Class_DictCustomMaitre import DictCustomMaitre
 from app.DORApy.classes.Class_dictGdfCompletREF import dictGdfCompletREF,GdfCompletREF
 from app.DORApy.classes.Class_DictDfInfoShp import DictDfInfoShp
+
+
+def conv_shp_en_geojson(files,temp_dir):
+    
+    # Use geopandas to read the shapefile
+    gdf = gpd.read_file(temp_dir)
+    gdf = gdf.to_crs("EPSG:4326")
+    
+    # Convert the GeoDataFrame to GeoJSON
+    geojson = gdf.to_json()
+    geojson = json.loads(geojson)
+    return geojson
+
 
 def ajout_shp_MO_ou_PPG(REF):
     dict_custom_maitre = DictCustomMaitre({})
