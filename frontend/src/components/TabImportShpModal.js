@@ -3,11 +3,11 @@ import { Modal, Tab, Tabs, Button } from 'react-bootstrap';
 import MO_gemapiTab from './MO_gemapiTab';
 import './TabImportShpModal.css';
 
-const TabImportShpModal = ({ isOpen, onRequestClose }) => {
+const TabImportShpModal = ({ isOpen, onRequestClose, initialBounds }) => {
     const [activeTab, setActiveTab] = useState('MO_gemapi');
 
     return (
-        <Modal show={isOpen} onHide={onRequestClose} centered>
+        <Modal show={isOpen} onHide={onRequestClose} centered className="modal-lg">
             <Modal.Header closeButton>
                 <Modal.Title>Importer des polygones manquants</Modal.Title>
             </Modal.Header>
@@ -19,7 +19,7 @@ const TabImportShpModal = ({ isOpen, onRequestClose }) => {
                     className="mb-3"
                 >
                     <Tab eventKey="MO_gemapi" title="MO_gemapi">
-                        <MO_gemapiTab />
+                        <MO_gemapiTab initialBounds={initialBounds} />
                     </Tab>
                     <Tab eventKey="tab2" title="Onglet 2">
                         <div>Contenu pour Onglet 2</div>

@@ -80,6 +80,10 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
         fetchInitialBounds();
     }, []);
 
+    useEffect(() => {
+        console.log('Initial bounds:', initialBounds); // Vérifiez que les initialBounds sont définis
+    }, [initialBounds]);
+
     // Effect to filter GeoJSON data when geoJsonData or filter changes
     useEffect(() => {
         if (geoJsonData) {
@@ -152,22 +156,22 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     }, [zoomLevel, filteredGeoJsonData]);
 
     const onEachFeature = (feature, layer) => {
-    layer.on({
-        click: () => {
-            const bounds = layer.getBounds();
-            console.log("bounds", bounds);
-            setSelectedBounds(bounds);
+        layer.on({
+            click: () => {
+                const bounds = layer.getBounds();
+                console.log("bounds", bounds);
+                setSelectedBounds(bounds);
 
-            // Appeler handleFolderClick avec l'ID du dossier correspondant
-            if (handleFolderClick) {
-                handleFolderClick({
-                    id: feature.id,
-                    name: feature.properties.NOM_MO,  // Assurez-vous que le nom du dossier est dans properties
-                    path: feature.properties.path || '', // Assurez-vous que le chemin est aussi dans properties
-                    files: feature.properties.files || [] // Assurez-vous que les fichiers sont dans properties
-                });
-            }
-        },
+                // Appeler handleFolderClick avec l'ID du dossier correspondant
+                if (handleFolderClick) {
+                    handleFolderClick({
+                        id: feature.id,
+                        name: feature.properties.NOM_MO,  // Assurez-vous que le nom du dossier est dans properties
+                        path: feature.properties.path || '', // Assurez-vous que le chemin est aussi dans properties
+                        files: feature.properties.files || [] // Assurez-vous que les fichiers sont dans properties
+                    });
+                }
+            },
             mouseover: () => {
                 setHighlightedFolderId(feature.id);
                 layer.setStyle({

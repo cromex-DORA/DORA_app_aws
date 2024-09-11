@@ -1,27 +1,28 @@
-/* modal_TAP_MO_GEMAPI.css */
-.modal-dialog {
-    max-width: 90vw; /* Ajuste la largeur de la modal */
-}
-
-.modal-content {
+.dropzone-container {
     display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.modal-body {
-    display: flex;
-    padding: 0; /* Pour supprimer le padding par défaut */
+.dropzone {
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
 }
 
-.tab-content {
-    flex: 1;
-    display: flex;
-    flex-direction: row;
-}
-
-.form-container {
-    padding: 15px;
+.upload-button {
+    margin-top: 1rem;
 }
 
 .map-container {
-    padding: 15px;
+    position: relative;
+}
+
+.polygon-info-button {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
 }

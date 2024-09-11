@@ -11,7 +11,6 @@ from app.DORApy.classes.Class_DictDfInfoShp import DictDfInfoShp
 
 
 def conv_shp_en_geojson(files,temp_dir):
-    
     # Use geopandas to read the shapefile
     gdf = gpd.read_file(temp_dir)
     gdf = gdf.to_crs("EPSG:4326")
@@ -21,6 +20,11 @@ def conv_shp_en_geojson(files,temp_dir):
     geojson = json.loads(geojson)
     return geojson
 
+def ajout_shp_MO_gemapi_BDD_DORA(nom_mo):
+
+
+    print(nom_mo, file=sys.stderr)
+    pass
 
 def ajout_shp_MO_ou_PPG(REF):
     dict_custom_maitre = DictCustomMaitre({})

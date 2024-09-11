@@ -147,7 +147,6 @@ def download_file():
 
 @app.route('/upload_MO_gemapi', methods=['POST'])
 def upload_MO_gemapi():
-    print("allo", file=sys.stderr)
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'message': 'Token is missing'}), 403
@@ -181,6 +180,30 @@ def upload_MO_gemapi():
     except Exception as e:
         print(f"Error processing files: {e}")
         return jsonify({'message': 'Error processing files'}), 500
+
+@app.route('/upload_complete_MO_gemapi', methods=['POST'])
+def upload_complete_MO_gemapi():
+    print("allo", file=sys.stderr)
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 403 
+    
+    nom_mo = request.form.get('NOM-MO')
+    alias = request.form.get('ALIAS')
+    code_siren = request.form.get('CODE_SIREN')
+
+    # Géométrie du polygone envoyée
+    geometry = request.form.get('geometry')
+
+    ajout_MO_ou_PPG.ajout_shp_MO_gemapi_BDD_DORA(nom_mo,alias,code_siren,geometry)
+    return jsonify({'message': 'Error processing files'}), 500
 
 
 @app.route('/', defaults={'path': ''})

@@ -1,21 +1,31 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import 'leaflet/dist/leaflet.css';
+import './MO_gemapiTab.css'; // Assurez-vous que ce fichier contient les styles nécessaires
+
 
 const FitBounds = ({ bounds }) => {
     const map = useMap();
-    map.fitBounds(bounds);
+
+    useEffect(() => {
+        if (bounds) {
+            map.fitBounds(bounds);
+        }
+    }, [bounds, map]);
+
     return null;
 };
 
-const MO_gemapiTab = () => {
+const MO_gemapiTab = ({ initialBounds }) => {
     const [files, setFiles] = useState([]);
     const [nomMo, setNomMo] = useState('');
+    const [alias, setAlias] = useState('');
+    const [codeSiren, setCodeSiren] = useState('');
     const [uploadStatus, setUploadStatus] = useState(null);
     const [geoJsonData, setGeoJsonData] = useState(null);
-    const [bounds, setBounds] = useState(null);
+    const [selectedFeature, setSelectedFeature] = useState(null);
 
     const token = localStorage.getItem('token');
 
@@ -34,7 +44,7 @@ const MO_gemapiTab = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!nomMo || files.length === 0) {
+        if (!files.length) {
             setUploadStatus('error');
             return;
         }
@@ -61,88 +71,143 @@ const MO_gemapiTab = () => {
             const geoJsonResponse = await response.json();
             setGeoJsonData(geoJsonResponse);
             setUploadStatus('success');
-
-            // Extract bounding box coordinates
-            const bbox = geoJsonResponse.features.find(feature => feature.properties.name === 'Bounding Box');
-            if (bbox) {
-                const bboxCoords = bbox.geometry.coordinates[0];
-                const bounds = [
-                    [bboxCoords[1][1], bboxCoords[1][0]], // South-West
-                    [bboxCoords[2][1], bboxCoords[2][0]]  // North-East
-                ];
-                setBounds(bounds);
-            }
         } catch (error) {
             console.error('Error during upload:', error);
             setUploadStatus('error');
         }
     };
 
+    const handleFeatureClick = (feature) => {
+        setSelectedFeature(feature);
+    };
+
+    const handleSendInfo = async () => {
+        if (!selectedFeature) {
+            alert('Veuillez sélectionner un polygone.');
+            return;
+        }
+
+        const geometry = selectedFeature.geometry;
+        const formData = new FormData();
+        formData.append('geometry', JSON.stringify(geometry));
+        formData.append('NOM-MO', nomMo);
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_IP_SERV}/upload_complete_MO_gemapi`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': token
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to send information');
+            }
+
+            alert('Informations envoyées avec succès.');
+        } catch (error) {
+            console.error('Error sending information:', error);
+            alert('Erreur lors de l\'envoi des informations.');
+        }
+    };
+
     return (
         <Row>
-            {/* Colonne de gauche pour le formulaire */}
+            {/* Colonne de gauche pour la dropzone et le bouton */}
             <Col md={4}>
-                <div className="form-container">
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group controlId="formNomMo">
-                            <Form.Label>NOM-MO</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Entrez le NOM-MO"
-                                value={nomMo}
-                                onChange={(e) => setNomMo(e.target.value)}
-                            />
-                        </Form.Group>
-
-                        <Form.Group>
-                            <div {...getRootProps({ className: 'dropzone' })} style={{ border: '2px dashed #ccc', padding: '20px' }}>
-                                <input {...getInputProps()} />
-                                <p>Glissez-déposez des fichiers ici, ou cliquez pour sélectionner des fichiers (formats .shp, .dbf, .shx, .prj)</p>
-                            </div>
-                        </Form.Group>
-
-                        {files.length > 0 && (
-                            <ul>
-                                {files.map((file) => (
-                                    <li key={file.path}>{file.name}</li>
-                                ))}
-                            </ul>
-                        )}
-
-                        <Button variant="primary" type="submit">
-                            Envoyer
-                        </Button>
-                    </Form>
-
-                    {uploadStatus === 'error' && (
-                        <Alert variant="danger" className="mt-3">
-                            Une erreur est survenue lors de l'envoi des fichiers. Veuillez réessayer.
-                        </Alert>
-                    )}
+                <div className="dropzone-container">
+                    <div {...getRootProps({ className: 'dropzone' })}>
+                        <input {...getInputProps()} />
+                        <p>Glissez-déposez des fichiers ici, ou cliquez pour sélectionner des fichiers (formats .shp, .dbf, .shx, .prj)</p>
+                    </div>
+                    <Button className="upload-button mt-2" variant="primary" onClick={handleSubmit}>
+                        Envoyer
+                    </Button>
                 </div>
             </Col>
 
-            {/* Colonne de droite pour la carte */}
+            {/* Colonne de droite pour la carte et le formulaire */}
             <Col md={8}>
-                {uploadStatus === 'success' && geoJsonData && (
-                    <div className="map-container">
-                        <Alert variant="success">
-                            Fichiers envoyés avec succès ! Aperçu du GeoJSON ci-dessous :
-                        </Alert>
-                        <MapContainer 
-                            style={{ height: '400px', width: '100%' }} 
-                            center={[44.837789, -0.57918]} 
-                            zoom={12}
-                        >
-                            <TileLayer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                            />
-                            <GeoJSON data={geoJsonData} />
-                            {bounds && <FitBounds bounds={bounds} />}
-                        </MapContainer>
-                    </div>
-                )}
+                <Row>
+                    {/* Carte */}
+                    <Col md={12}>
+                        {uploadStatus === 'success' && geoJsonData && (
+                            <div className="map-container">
+                                <Alert variant="success">
+                                    Quel polygone ?
+                                </Alert>
+                                <MapContainer
+                                    style={{ height: '400px', width: '100%' }}
+                                    center={initialBounds?.[0] || [44.837789, -0.57918]} // Assure que les coordonnées sont correctes
+                                    zoom={12} // Si tu ne veux pas de valeur par défaut, enlève cette ligne
+                                >
+                                    <TileLayer
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                                    />
+                                    <GeoJSON
+                                        data={geoJsonData}
+                                        onEachFeature={(feature, layer) => {
+                                            layer.on({
+                                                click: () => handleFeatureClick(feature)
+                                            });
+                                        }}
+                                        style={(feature) => ({
+                                            color: feature === selectedFeature ? 'blue' : 'gray',  // Surbrillance du polygone sélectionné
+                                        })}
+                                    />
+                                    <FitBounds bounds={initialBounds} />
+                                </MapContainer>
+                            </div>
+                        )}
+                    </Col>
+                </Row>
+
+                <Row className="mt-3">
+                    {/* Formulaire */}
+                    <Col md={12}>
+                        <div className="form-container">
+                            <Form>
+                                <Form.Group controlId="formNomMo">
+                                    <Form.Label>NOM-MO</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Entrez le NOM-MO"
+                                        value={nomMo}
+                                        onChange={(e) => setNomMo(e.target.value)}
+                                    />
+                                </Form.Group>
+
+                                <Form.Group controlId="formAlias">
+                                    <Form.Label>ALIAS</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Entrez l'ALIAS"
+                                        value={alias}
+                                        onChange={(e) => setAlias(e.target.value)}
+                                    />
+                                </Form.Group>
+
+                                <Form.Group controlId="formCodeSiren">
+                                    <Form.Label>CODE_SIREN</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Entrez le CODE_SIREN"
+                                        value={codeSiren}
+                                        onChange={(e) => setCodeSiren(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Form>
+
+                            {selectedFeature && (
+                                <Button className="mt-3" variant="success" style={{ position: 'absolute', bottom: '20px', right: '20px' }} onClick={handleSendInfo}>
+                                    Envoyer les informations du polygone
+                                </Button>
+                            )}
+                        </div>
+                    </Col>
+                </Row>
             </Col>
         </Row>
     );
