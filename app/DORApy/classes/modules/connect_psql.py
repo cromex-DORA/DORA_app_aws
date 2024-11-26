@@ -8,7 +8,7 @@ password_psql = os.getenv('password_db')
 conn = psycopg.connect(
     dbname="dora_db",
     user="ubuntu",
-    password="allosome",
+    password=tamere,
     host="35.180.138.1",
     port="5432"
 )
